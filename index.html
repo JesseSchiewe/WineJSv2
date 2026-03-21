@@ -1,5 +1,3 @@
-const SUPABASE_URL      = 'https://tqjnymalhnqyeovfwzpt.supabase.co';       // Settings → API
-const SUPABASE_ANON_KEY = 'sb_publishable_8jNLKl08qwXFNQAhWxPgqA_U4BWl0K-';  // Settings → API → anon key
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -745,9 +743,8 @@ const SUPABASE_ANON_KEY = 'sb_publishable_8jNLKl08qwXFNQAhWxPgqA_U4BWl0K-';  // 
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-  // ── Supabase config — replace these two lines with your project values ──
-  const SUPABASE_URL      = 'YOUR_SUPABASE_URL';
-  const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
+  const SUPABASE_URL      = 'https://tqjnymalhnqyeovfwzpt.supabase.co';
+  const SUPABASE_ANON_KEY = 'sb_publishable_8jNLKl08qwXFNQAhWxPgqA_U4BWl0K-';
 
   const { createClient } = supabase;
   const db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
