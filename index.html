@@ -217,6 +217,7 @@
       color: var(--text);
       background: var(--cream);
       transition: border-color 0.2s, background 0.2s;
+      appearance: none;
       -webkit-appearance: none;
     }
 
@@ -231,6 +232,131 @@
       resize: vertical;
       min-height: 110px;
       line-height: 1.5;
+    }
+
+    /* ── Flavor selector ───────────────────────────────────── */
+    .flavor-help {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+      line-height: 1.5;
+    }
+
+    .flavor-summary {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      background: var(--cream);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 12px;
+      margin-bottom: 12px;
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .flavor-count {
+      font-weight: 700;
+      color: var(--wine);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .flavor-groups {
+      display: grid;
+      gap: 8px;
+    }
+
+    .flavor-group {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      background: white;
+    }
+
+    .flavor-group summary {
+      list-style: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 10px 12px;
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: manipulation;
+    }
+
+    .flavor-group summary::-webkit-details-marker { display: none; }
+
+    .flavor-group-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .flavor-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .flavor-group-meta {
+      font-size: 12px;
+      color: var(--text-muted);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .flavor-options {
+      padding: 0 12px 12px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      border-top: 1px solid var(--border);
+      background: #fff;
+    }
+
+    .flavor-chip {
+      border: 1px solid var(--border);
+      background: var(--cream);
+      color: var(--text);
+      border-radius: 999px;
+      padding: 7px 11px;
+      font-size: 13px;
+      font-family: inherit;
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.15s, transform 0.08s;
+      touch-action: manipulation;
+    }
+
+    .flavor-chip:active { transform: scale(0.97); }
+
+    .flavor-chip.selected {
+      background: rgba(123,45,58,0.1);
+      border-color: var(--wine);
+      color: var(--wine);
+      font-weight: 700;
+    }
+
+    .selected-flavors {
+      margin-top: 12px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+    }
+
+    .selected-flavor-pill {
+      background: rgba(123,45,58,0.08);
+      border: 1px solid rgba(123,45,58,0.25);
+      color: var(--wine-dark);
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 5px 10px;
     }
 
     .field-row {
@@ -729,6 +855,16 @@
       </div>
     </div>
 
+    <div class="card">
+      <div class="section-title">Flavor Selector</div>
+      <div class="flavor-help">Pick all flavor notes that apply. You can expand categories and select as many as needed.</div>
+      <div class="flavor-summary">
+        <span>Selected flavor notes</span>
+        <span id="selectedFlavorCount" class="flavor-count">0</span>
+      </div>
+      <div id="flavor-groups" class="flavor-groups"></div>
+    </div>
+
     <button class="save-btn" onclick="saveReview()">Save Review</button>
   </div>
 
@@ -752,6 +888,200 @@
   // ── App state ────────────────────────────────────────────────────
   let currentUser = null;
   let reviews     = [];
+  const selectedFlavors = new Set();
+
+  // ── Flavor options ───────────────────────────────────────────────
+  const RedWineDarkFruit = [
+    { value: 'Blackberry', label: 'Blackberry', color: 'purple', isFixed: true },
+    { value: 'Black Cherry', label: 'Black Cherry', color: 'purple', isFixed: true },
+    { value: 'Black Currant', label: 'Black Currant', color: 'purple', isFixed: true },
+    { value: 'Cassis', label: 'Cassis', color: 'purple', isFixed: true },
+    { value: 'Plum', label: 'Plum', color: 'purple', isFixed: true },
+    { value: 'Prune', label: 'Prune', color: 'purple', isFixed: true },
+    { value: 'Blueberry', label: 'Blueberry', color: 'purple', isFixed: true },
+    { value: 'Boysenberry', label: 'Boysenberry', color: 'purple', isFixed: true },
+    { value: 'Mulberry', label: 'Mulberry', color: 'purple', isFixed: true },
+    { value: 'Fig', label: 'Fig', color: 'purple', isFixed: true },
+    { value: 'Raisin', label: 'Raisin', color: 'purple', isFixed: true },
+    { value: 'Blackberry Jam', label: 'Blackberry Jam', color: 'purple', isFixed: true },
+  ];
+
+  const RedWineRedFruit = [
+    { value: 'Cherry', label: 'Cherry', color: 'red', isFixed: true },
+    { value: 'Sour Cherry', label: 'Sour Cherry', color: 'red', isFixed: true },
+    { value: 'Cranberry', label: 'Cranberry', color: 'red', isFixed: true },
+    { value: 'Strawberry', label: 'Strawberry', color: 'red', isFixed: true },
+    { value: 'Raspberry', label: 'Raspberry', color: 'red', isFixed: true },
+    { value: 'Red Currant', label: 'Red Currant', color: 'red', isFixed: true },
+    { value: 'Pomegranate', label: 'Pomegranate', color: 'red', isFixed: true },
+    { value: 'Fruit Punch', label: 'Fruit Punch', color: 'red', isFixed: true },
+    { value: 'Red Plum', label: 'Red Plum', color: 'red', isFixed: true },
+  ];
+
+  const TreeFruit = [
+    { value: 'Red Apple', label: 'Red Apple', color: 'lime', isFixed: true },
+    { value: 'Green Apple', label: 'Green Apple', color: 'lime', isFixed: true },
+    { value: 'Yellow Apple', label: 'Yellow Apple', color: 'lime', isFixed: true },
+    { value: 'Pear', label: 'Pear', color: 'lime', isFixed: true },
+    { value: 'Peach', label: 'Peach', color: 'lime', isFixed: true },
+    { value: 'Apricot', label: 'Apricot', color: 'lime', isFixed: true },
+    { value: 'Nectarine', label: 'Nectarine', color: 'lime', isFixed: true },
+    { value: 'Quince', label: 'Quince', color: 'lime', isFixed: true },
+    { value: 'Persimmon', label: 'Persimmon', color: 'lime', isFixed: true },
+  ];
+
+  const TropicalFruit = [
+    { value: 'Pineapple', label: 'Pineapple', color: '#e6ae25', isFixed: true },
+    { value: 'Mango', label: 'Mango', color: '#e6ae25', isFixed: true },
+    { value: 'Kiwi', label: 'Kiwi', color: '#e6ae25', isFixed: true },
+    { value: 'Melon', label: 'Melon', color: '#e6ae25', isFixed: true },
+    { value: 'Passionfruit', label: 'Passionfruit', color: '#e6ae25', isFixed: true },
+    { value: 'Guava', label: 'Guava', color: '#e6ae25', isFixed: true },
+    { value: 'Lychee', label: 'Lychee', color: '#e6ae25', isFixed: true },
+    { value: 'Papaya', label: 'Papaya', color: '#e6ae25', isFixed: true },
+    { value: 'Banana', label: 'Banana', color: '#e6ae25', isFixed: true },
+    { value: 'Bubblegum', label: 'Bubblegum', color: '#e6ae25', isFixed: true },
+  ];
+
+  const Citrus = [
+    { value: 'Lime', label: 'Lime', color: 'yellow', isFixed: true },
+    { value: 'Lemon', label: 'Lemon', color: 'yellow', isFixed: true },
+    { value: 'Grapefruit', label: 'Grapefruit', color: 'yellow', isFixed: true },
+    { value: 'Orange', label: 'Orange', color: 'yellow', isFixed: true },
+    { value: 'Mandarin', label: 'Mandarin', color: 'yellow', isFixed: true },
+    { value: 'Tangerine', label: 'Tangerine', color: 'yellow', isFixed: true },
+    { value: 'Pomelo', label: 'Pomelo', color: 'yellow', isFixed: true },
+    { value: 'Orange Zest', label: 'Orange Zest', color: 'yellow', isFixed: true },
+  ];
+
+  const RedWineSpice = [
+    { value: 'Black Pepper', label: 'Black Pepper', color: '#858585', isFixed: true },
+    { value: 'Red Pepper', label: 'Red Pepper', color: '#858585', isFixed: true },
+    { value: 'White Pepper', label: 'White Pepper', color: '#858585', isFixed: true },
+    { value: 'Cinnamon', label: 'Cinnamon', color: '#858585', isFixed: true },
+    { value: 'Black Tea', label: 'Black Tea', color: '#858585', isFixed: true },
+    { value: 'Fennel', label: 'Fennel', color: '#858585', isFixed: true },
+    { value: 'Anise', label: 'Anise', color: '#858585', isFixed: true },
+    { value: 'Star Anise', label: 'Star Anise', color: '#858585', isFixed: true },
+    { value: 'Clove', label: 'Clove', color: '#858585', isFixed: true },
+    { value: 'Allspice', label: 'Allspice', color: '#858585', isFixed: true },
+    { value: 'Cardamom', label: 'Cardamom', color: '#858585', isFixed: true },
+    { value: 'Licorice', label: 'Licorice', color: '#858585', isFixed: true },
+  ];
+
+  const RedWineHerbs = [
+    { value: 'Dried Herbs', label: 'Dried Herbs', color: 'green', isFixed: true },
+    { value: 'Mint', label: 'Mint', color: 'green', isFixed: true },
+    { value: 'Rosemary', label: 'Rosemary', color: 'green', isFixed: true },
+    { value: 'Oregano', label: 'Oregano', color: 'green', isFixed: true },
+    { value: 'Thyme', label: 'Thyme', color: 'green', isFixed: true },
+    { value: 'Bay Leaf', label: 'Bay Leaf', color: 'green', isFixed: true },
+    { value: 'Eucalyptus', label: 'Eucalyptus', color: 'green', isFixed: true },
+    { value: 'Sage', label: 'Sage', color: 'green', isFixed: true },
+    { value: 'Dill', label: 'Dill', color: 'green', isFixed: true },
+  ];
+
+  const Vegetable = [
+    { value: 'Tomato', label: 'Tomato', color: '#b4c04c', isFixed: true },
+    { value: 'Grass', label: 'Grass', color: '#b4c04c', isFixed: true },
+    { value: 'Bell Pepper', label: 'Bell Pepper', color: '#b4c04c', isFixed: true },
+    { value: 'Cucumber', label: 'Cucumber', color: '#b4c04c', isFixed: true },
+    { value: 'Jalapeno', label: 'Jalapeno', color: '#b4c04c', isFixed: true },
+    { value: 'Asparagus', label: 'Asparagus', color: '#b4c04c', isFixed: true },
+    { value: 'Olive', label: 'Olive', color: '#b4c04c', isFixed: true },
+  ];
+
+  const RedWineSecondary = [
+    { value: 'Leather', label: 'Leather', color: 'orange', isFixed: true },
+    { value: 'Mushroom', label: 'Mushroom', color: 'orange', isFixed: true },
+    { value: 'Cured Meat', label: 'Cured Meat', color: 'orange', isFixed: true },
+    { value: 'Smoke', label: 'Smoke', color: 'orange', isFixed: true },
+    { value: 'Graphite', label: 'Graphite', color: 'orange', isFixed: true },
+    { value: 'Wet Gravel', label: 'Wet Gravel', color: 'orange', isFixed: true },
+    { value: 'Wet Stone', label: 'Wet Stone', color: 'orange', isFixed: true },
+    { value: 'Flint', label: 'Flint', color: 'orange', isFixed: true },
+    { value: 'Bacon Fat', label: 'Bacon Fat', color: 'orange', isFixed: true },
+    { value: 'Toasted Bread', label: 'Toasted Bread', color: 'orange', isFixed: true },
+    { value: 'Forest Floor', label: 'Forest Floor', color: 'orange', isFixed: true },
+    { value: 'Butter', label: 'Butter', color: 'orange', isFixed: true },
+    { value: 'Truffle', label: 'Truffle', color: 'orange', isFixed: true },
+    { value: 'Nuts', label: 'Nuts', color: 'orange', isFixed: true },
+    { value: 'Limestone', label: 'Limestone', color: 'orange', isFixed: true },
+    { value: 'Salt', label: 'Salt', color: 'orange', isFixed: true },
+    { value: 'Gasoline', label: 'Gasoline', color: 'orange', isFixed: true },
+    { value: 'Pastry', label: 'Pastry', color: 'orange', isFixed: true },
+    { value: 'Honey', label: 'Honey', color: 'orange', isFixed: true },
+    { value: 'Clay Pot', label: 'Clay Pot', color: 'orange', isFixed: true },
+    { value: 'Potting Soil', label: 'Potting Soil', color: 'orange', isFixed: true },
+    { value: 'Beeswax', label: 'Beeswax', color: 'orange', isFixed: true },
+    { value: 'Tar', label: 'Tar', color: 'orange', isFixed: true },
+    { value: 'Iodine', label: 'Iodine', color: 'orange', isFixed: true },
+  ];
+
+  const RedWineFlower = [
+    { value: 'Potpourri', label: 'Potpourri', color: 'hotpink', isFixed: true },
+    { value: 'Dried Flowers', label: 'Dried Flowers', color: 'hotpink', isFixed: true },
+    { value: 'Rose', label: 'Rose', color: 'hotpink', isFixed: true },
+    { value: 'Violet', label: 'Violet', color: 'hotpink', isFixed: true },
+    { value: 'Lavender', label: 'Lavender', color: 'hotpink', isFixed: true },
+    { value: 'Honeysuckle', label: 'Honeysuckle', color: 'hotpink', isFixed: true },
+    { value: 'Hibiscus', label: 'Hibiscus', color: 'hotpink', isFixed: true },
+    { value: 'Orange Blossom', label: 'Orange Blossom', color: 'hotpink', isFixed: true },
+    { value: 'Jasmine', label: 'Jasmine', color: 'hotpink', isFixed: true },
+    { value: 'Acacia', label: 'Acacia', color: 'hotpink', isFixed: true },
+    { value: 'Elderflower', label: 'Elderflower', color: 'hotpink', isFixed: true },
+  ];
+
+  const RedWineOak = [
+    { value: 'Vanilla', label: 'Vanilla', color: 'brown', isFixed: true },
+    { value: 'Coffee', label: 'Coffee', color: 'brown', isFixed: true },
+    { value: 'Cocoa', label: 'Cocoa', color: 'brown', isFixed: true },
+    { value: 'Dark Chocolate', label: 'Dark Chocolate', color: 'brown', isFixed: true },
+    { value: 'Baking Spices', label: 'Baking Spices', color: 'brown', isFixed: true },
+    { value: 'Nutmeg', label: 'Nutmeg', color: 'brown', isFixed: true },
+    { value: 'Cinnamon', label: 'Cinnamon', color: 'brown', isFixed: true },
+    { value: 'Cola', label: 'Cola', color: 'brown', isFixed: true },
+    { value: 'Cigar Box', label: 'Cigar Box', color: 'brown', isFixed: true },
+    { value: 'Tobacco', label: 'Tobacco', color: 'brown', isFixed: true },
+    { value: 'Cedar', label: 'Cedar', color: 'brown', isFixed: true },
+    { value: 'Brown Sugar', label: 'Brown Sugar', color: 'brown', isFixed: true },
+    { value: 'Coconut', label: 'Coconut', color: 'brown', isFixed: true },
+    { value: 'Toast', label: 'Toast', color: 'brown', isFixed: true },
+    { value: 'Mocha', label: 'Mocha', color: 'brown', isFixed: true },
+    { value: 'Caramel', label: 'Caramel', color: 'brown', isFixed: true },
+  ];
+
+  const RedWineFaults = [
+    { value: 'Stewed Fruit', label: 'Stewed Fruit', color: 'tan', isFixed: true },
+    { value: 'Vinegar', label: 'Vinegar', color: 'tan', isFixed: true },
+    { value: 'Wet Newspaper', label: 'Wet Newspaper', color: 'tan', isFixed: true },
+    { value: 'Wet Dog', label: 'Wet Dog', color: 'tan', isFixed: true },
+    { value: 'Burnt Rubber', label: 'Burnt Rubber', color: 'tan', isFixed: true },
+    { value: 'Garlic', label: 'Garlic', color: 'tan', isFixed: true },
+    { value: 'Metal', label: 'Metal', color: 'tan', isFixed: true },
+    { value: 'Band Aid', label: 'Band Aid', color: 'tan', isFixed: true },
+    { value: 'Burnt Match', label: 'Burnt Match', color: 'tan', isFixed: true },
+    { value: 'Cork Taint (TCA)', label: 'Cork Taint (TCA)', color: 'tan', isFixed: true },
+    { value: 'Oxidation', label: 'Oxidation', color: 'tan', isFixed: true },
+    { value: 'Brettanomyces', label: 'Brettanomyces', color: 'tan', isFixed: true },
+    { value: 'Volatile Acidity', label: 'Volatile Acidity', color: 'tan', isFixed: true },
+    { value: 'Sulfur / Reductive', label: 'Sulfur / Reductive', color: 'tan', isFixed: true },
+  ];
+
+  const RedWineFlavorOptions = [
+    { label: 'Dark Fruit', options: RedWineDarkFruit, color: 'purple' },
+    { label: 'Red Fruit', options: RedWineRedFruit, color: 'red' },
+    { label: 'Tree Fruit', options: TreeFruit, color: 'lime' },
+    { label: 'Tropical Fruit', options: TropicalFruit, color: '#e6ae25' },
+    { label: 'Citrus', options: Citrus, color: 'yellow' },
+    { label: 'Spice', options: RedWineSpice, color: '#858585' },
+    { label: 'Herbs', options: RedWineHerbs, color: 'green' },
+    { label: 'Vegetable', options: Vegetable, color: '#abab9a' },
+    { label: 'Secondary', options: RedWineSecondary, color: 'orange' },
+    { label: 'Flower', options: RedWineFlower, color: 'hotpink' },
+    { label: 'Oak', options: RedWineOak, color: 'brown' },
+    { label: 'Faults', options: RedWineFaults, color: 'tan' }
+  ];
 
   // ── Auth ─────────────────────────────────────────────────────────
   async function signInWithGoogle() {
@@ -911,7 +1241,7 @@
       wine_name:     wineName,
       appellation:   val('appellation'),
       vintage:       val('vintage'),
-      scores:        { ...scores },
+      scores:        { ...scores, selected_flavors: Array.from(selectedFlavors) },
       total:         getTotal(),
       actual_price:  val('actualPrice'),
       would_pay:     val('wouldPay'),
@@ -941,6 +1271,7 @@
 
   function resetForm() {
     Object.keys(scores).forEach(k => { scores[k] = 0; });
+    selectedFlavors.clear();
     refreshTotal();
 
     document.querySelectorAll('.stepper').forEach(el => {
@@ -952,9 +1283,55 @@
      'actualPrice','wouldPay','tastingNotes']
       .forEach(id => document.getElementById(id).value = '');
 
+    renderFlavorSelector();
     document.getElementById('reviewDate').value = todayISO();
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
+
+  function renderFlavorSelector() {
+    const groups = document.getElementById('flavor-groups');
+    const selectedCount = document.getElementById('selectedFlavorCount');
+
+    if (!groups || !selectedCount) return;
+
+    selectedCount.textContent = String(selectedFlavors.size);
+
+    groups.innerHTML = RedWineFlavorOptions.map((category, index) => {
+      const selectedInGroup = category.options.filter(o => selectedFlavors.has(o.value)).length;
+      const optionsHtml = category.options.map(option => {
+        const selected = selectedFlavors.has(option.value) ? 'selected' : '';
+        return `<button type="button" class="flavor-chip ${selected}" data-flavor="${esc(option.value)}">${esc(option.label)}</button>`;
+      }).join('');
+
+      return `
+        <details class="flavor-group" ${index < 2 ? 'open' : ''}>
+          <summary>
+            <span class="flavor-group-title">
+              <span class="flavor-dot" style="background:${category.color};"></span>
+              ${esc(category.label)}
+            </span>
+            <span class="flavor-group-meta">${selectedInGroup} selected</span>
+          </summary>
+          <div class="flavor-options">${optionsHtml}</div>
+        </details>`;
+    }).join('');
+  }
+
+  document.getElementById('flavor-groups').addEventListener('click', event => {
+    const chip = event.target.closest('.flavor-chip');
+    if (!chip) return;
+
+    const flavor = chip.dataset.flavor;
+    if (!flavor) return;
+
+    if (selectedFlavors.has(flavor)) {
+      selectedFlavors.delete(flavor);
+    } else {
+      selectedFlavors.add(flavor);
+    }
+
+    renderFlavorSelector();
+  });
 
   // ── Render reviews ───────────────────────────────────────────────
   function renderReviews() {
@@ -992,6 +1369,11 @@
         ? `<div class="notes-block"><label>Tasting Notes</label><p>${esc(r.tasting_notes)}</p></div>`
         : '';
 
+      const flavorValues = Array.isArray(r.scores?.selected_flavors) ? r.scores.selected_flavors : [];
+      const flavorsHTML = flavorValues.length
+        ? `<div class="notes-block"><label>Selected Flavors</label><div class="selected-flavors">${flavorValues.map(f => `<span class="selected-flavor-pill">${esc(f)}</span>`).join('')}</div></div>`
+        : '';
+
       return `
         <div class="review-card">
           <div class="review-card-header" onclick="toggleDetail(${r.id})">
@@ -1010,6 +1392,7 @@
               <div class="breakdown-row"><span class="b-name">Balance</span>               <span class="b-val">${r.scores.balance} / 5</span></div>
               <div class="breakdown-row"><span class="b-name">Length</span>                <span class="b-val">${r.scores.length}  / 5</span></div>
             </div>
+            ${flavorsHTML}
             ${notesHTML}
             <button class="delete-btn" onclick="deleteReview(${r.id})">Delete Review</button>
           </div>
@@ -1053,6 +1436,7 @@
 
   // ── Init ─────────────────────────────────────────────────────────
   document.getElementById('reviewDate').value = todayISO();
+  renderFlavorSelector();
 </script>
 </body>
 </html>
