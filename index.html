@@ -1,0 +1,1059 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>Wine Journal</title>
+  <style>
+    :root {
+      --wine:        #7B2D3A;
+      --wine-dark:   #501D26;
+      --gold:        #C8A96E;
+      --cream:       #FAF7F2;
+      --card:        #FFFFFF;
+      --text:        #2C1810;
+      --text-muted:  #8C6E63;
+      --border:      #E8DDD6;
+      --radius:      16px;
+      --shadow:      0 2px 12px rgba(114,47,55,0.10);
+      --tab-h:       48px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    [hidden] { display: none !important; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      background: var(--cream);
+      color: var(--text);
+      min-height: 100dvh;
+      -webkit-text-size-adjust: 100%;
+    }
+
+    /* ── Loading screen ─────────────────────────────────────── */
+    #loading-screen {
+      position: fixed; inset: 0;
+      background: var(--cream);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 1000;
+    }
+
+    .spinner {
+      width: 44px; height: 44px;
+      border: 3px solid rgba(123,45,58,0.15);
+      border-top-color: var(--wine);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Login screen ───────────────────────────────────────── */
+    #login-screen {
+      position: fixed; inset: 0;
+      background: var(--cream);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 1000;
+      padding: 24px;
+    }
+
+    .login-card {
+      background: var(--card);
+      border-radius: 24px;
+      padding: 48px 32px;
+      text-align: center;
+      box-shadow: 0 8px 40px rgba(114,47,55,0.15);
+      max-width: 360px;
+      width: 100%;
+    }
+
+    .login-wine-icon { font-size: 56px; margin-bottom: 20px; line-height: 1; }
+
+    .login-title {
+      font-size: 26px; font-weight: 800;
+      color: var(--text); margin-bottom: 6px;
+    }
+
+    .login-sub {
+      font-size: 15px; color: var(--text-muted);
+      margin-bottom: 40px; line-height: 1.5;
+    }
+
+    .google-btn {
+      display: flex; align-items: center; justify-content: center; gap: 12px;
+      width: 100%; padding: 14px 20px;
+      background: white;
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      font-size: 16px; font-weight: 600; color: var(--text);
+      cursor: pointer; font-family: inherit;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+      transition: background 0.15s, border-color 0.15s;
+      touch-action: manipulation;
+    }
+
+    .google-btn:hover  { background: var(--cream); border-color: #bbb; }
+    .google-btn:active { background: #ede8e3; transform: scale(0.98); }
+
+    /* ── User avatar in header ──────────────────────────────── */
+    .user-avatar {
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.2) center/cover no-repeat;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 15px; font-weight: 700; color: white;
+      cursor: pointer;
+      border: 2px solid rgba(255,255,255,0.35);
+      touch-action: manipulation;
+      flex-shrink: 0;
+      user-select: none; -webkit-user-select: none;
+    }
+
+    .user-avatar:active { opacity: 0.75; }
+
+    /* ── Sticky header + tabs ───────────────────────────────── */
+    .sticky-top {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .app-header {
+      background: var(--wine);
+      color: white;
+      padding: 14px 20px;
+      padding-top: calc(14px + env(safe-area-inset-top));
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .app-header h1 {
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+    }
+
+    .app-header .subtitle {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      opacity: 0.7;
+      margin-bottom: 2px;
+    }
+
+    .tab-bar {
+      display: flex;
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .tab-btn {
+      flex: 1;
+      height: var(--tab-h);
+      border: none;
+      background: none;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-muted);
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+      transition: color 0.2s, border-color 0.2s;
+      touch-action: manipulation;
+    }
+
+    .tab-btn.active {
+      color: var(--wine);
+      border-bottom-color: var(--wine);
+    }
+
+    /* ── Views ──────────────────────────────────────────────── */
+    .view { display: none; padding: 20px; max-width: 620px; margin: 0 auto; }
+    .view.active { display: block; }
+
+    /* ── Cards ──────────────────────────────────────────────── */
+    .card {
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 20px;
+      margin-bottom: 16px;
+      box-shadow: var(--shadow);
+    }
+
+    .section-title {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      color: var(--wine);
+      margin-bottom: 18px;
+    }
+
+    /* ── Form fields ────────────────────────────────────────── */
+    .field { margin-bottom: 14px; }
+    .field:last-child { margin-bottom: 0; }
+
+    .field label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      margin-bottom: 6px;
+    }
+
+    .field input,
+    .field textarea {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      font-size: 16px; /* prevents iOS zoom */
+      font-family: inherit;
+      color: var(--text);
+      background: var(--cream);
+      transition: border-color 0.2s, background 0.2s;
+      -webkit-appearance: none;
+    }
+
+    .field input:focus,
+    .field textarea:focus {
+      outline: none;
+      border-color: var(--wine);
+      background: white;
+    }
+
+    .field textarea {
+      resize: vertical;
+      min-height: 110px;
+      line-height: 1.5;
+    }
+
+    .field-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .price-wrap { position: relative; }
+    .price-wrap::before {
+      content: '$';
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+      font-size: 16px;
+      pointer-events: none;
+    }
+    .price-wrap input { padding-left: 26px; }
+
+    /* ── Score steppers ─────────────────────────────────────── */
+    .score-row {
+      display: flex;
+      align-items: center;
+      padding: 14px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .score-row:last-child { border-bottom: none; padding-bottom: 0; }
+    .score-row:first-of-type { padding-top: 0; }
+
+    .score-label {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .score-label .name {
+      font-size: 15px;
+      font-weight: 600;
+    }
+
+    .score-label .range {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 1px;
+    }
+
+    .stepper {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-shrink: 0;
+    }
+
+    .stepper-btn {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      border: 2px solid var(--wine);
+      background: white;
+      color: var(--wine);
+      font-size: 24px;
+      font-weight: 300;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.12s, color 0.12s, transform 0.1s;
+      touch-action: manipulation;
+      user-select: none;
+      -webkit-user-select: none;
+      line-height: 1;
+    }
+
+    .stepper-btn:active,
+    .stepper-btn.pressed {
+      background: var(--wine);
+      color: white;
+      transform: scale(0.92);
+    }
+
+    .stepper-btn:disabled {
+      opacity: 0.25;
+      cursor: default;
+    }
+
+    .stepper-value {
+      min-width: 44px;
+      text-align: center;
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--wine);
+      font-variant-numeric: tabular-nums;
+      line-height: 1;
+    }
+
+    /* ── Total score banner ─────────────────────────────────── */
+    .total-card {
+      background: var(--wine);
+      border-radius: var(--radius);
+      padding: 20px 24px;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .total-label {
+      color: rgba(255,255,255,0.8);
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .total-pts {
+      color: rgba(255,255,255,0.55);
+      font-size: 12px;
+      margin-top: 3px;
+    }
+
+    .total-number {
+      color: white;
+      font-size: 42px;
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+      line-height: 1;
+    }
+
+    .total-denom {
+      color: rgba(255,255,255,0.55);
+      font-size: 18px;
+    }
+
+    /* ── Save button ────────────────────────────────────────── */
+    .save-btn {
+      width: 100%;
+      padding: 16px;
+      margin-bottom: calc(32px + env(safe-area-inset-bottom));
+      background: var(--wine);
+      color: white;
+      border: none;
+      border-radius: var(--radius);
+      font-size: 17px;
+      font-weight: 700;
+      font-family: inherit;
+      cursor: pointer;
+      letter-spacing: 0.3px;
+      transition: background 0.15s, transform 0.1s;
+      touch-action: manipulation;
+    }
+
+    .save-btn:active { background: var(--wine-dark); transform: scale(0.98); }
+
+    /* ── Toast ──────────────────────────────────────────────── */
+    .toast {
+      position: fixed;
+      bottom: calc(24px + env(safe-area-inset-bottom));
+      left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      background: #1C1008;
+      color: white;
+      padding: 12px 22px;
+      border-radius: 24px;
+      font-size: 14px;
+      font-weight: 600;
+      z-index: 999;
+      transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+      white-space: nowrap;
+      pointer-events: none;
+    }
+
+    .toast.show { transform: translateX(-50%) translateY(0); }
+
+    /* ── Reviews list ───────────────────────────────────────── */
+    .reviews-empty {
+      text-align: center;
+      padding: 64px 20px;
+      color: var(--text-muted);
+    }
+
+    .reviews-empty .empty-icon { font-size: 48px; margin-bottom: 12px; }
+    .reviews-empty .empty-title { font-size: 17px; font-weight: 600; margin-bottom: 6px; color: var(--text); }
+    .reviews-empty .empty-sub { font-size: 14px; }
+
+    .review-card {
+      background: var(--card);
+      border-radius: var(--radius);
+      margin-bottom: 12px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .review-card-header {
+      padding: 16px 18px;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      cursor: pointer;
+      gap: 12px;
+    }
+
+    .review-wine-name {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1.3;
+    }
+
+    .review-meta {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-top: 3px;
+    }
+
+    .score-badge {
+      background: var(--wine);
+      color: white;
+      border-radius: 20px;
+      padding: 5px 13px;
+      font-size: 15px;
+      font-weight: 700;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .review-detail {
+      display: none;
+      border-top: 1px solid var(--border);
+      padding: 16px 18px;
+    }
+
+    .review-detail.open { display: block; }
+
+    .detail-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px 16px;
+      margin-bottom: 14px;
+    }
+
+    .detail-item label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: var(--text-muted);
+      display: block;
+      margin-bottom: 2px;
+    }
+
+    .detail-item span {
+      font-size: 14px;
+      color: var(--text);
+      font-weight: 500;
+    }
+
+    .breakdown {
+      background: var(--cream);
+      border-radius: 10px;
+      padding: 12px 14px;
+      margin-bottom: 14px;
+    }
+
+    .breakdown-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 6px 0;
+      font-size: 13px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .breakdown-row:last-child { border-bottom: none; padding-bottom: 0; }
+    .breakdown-row:first-child { padding-top: 0; }
+
+    .breakdown-row .b-name { color: var(--text-muted); }
+    .breakdown-row .b-val  { font-weight: 700; color: var(--wine); }
+
+    .notes-block { margin-bottom: 14px; }
+    .notes-block label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: var(--text-muted);
+      display: block;
+      margin-bottom: 5px;
+    }
+    .notes-block p {
+      font-size: 14px;
+      color: var(--text);
+      line-height: 1.55;
+      white-space: pre-wrap;
+    }
+
+    .delete-btn {
+      width: 100%;
+      padding: 10px;
+      border: 1.5px solid #D94040;
+      border-radius: 10px;
+      background: none;
+      color: #D94040;
+      font-size: 14px;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+      touch-action: manipulation;
+    }
+
+    .delete-btn:active { background: #D94040; color: white; }
+
+    /* ── Responsive ─────────────────────────────────────────── */
+    @media (min-width: 500px) {
+      .view { padding: 24px; }
+    }
+
+    @media (min-width: 640px) {
+      .detail-grid { grid-template-columns: repeat(3, 1fr); }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── Loading screen ─────────────────────────────────────── -->
+<div id="loading-screen">
+  <div class="spinner"></div>
+</div>
+
+<!-- ── Login screen ───────────────────────────────────────── -->
+<div id="login-screen" hidden>
+  <div class="login-card">
+    <div class="login-wine-icon">🍷</div>
+    <div class="login-title">Wine Journal</div>
+    <div class="login-sub">Sign in to save and sync<br>your tasting notes</div>
+    <button class="google-btn" onclick="signInWithGoogle()">
+      <svg width="20" height="20" viewBox="0 0 48 48" aria-hidden="true">
+        <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+        <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+        <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+        <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.35-8.16 2.35-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+      </svg>
+      Sign in with Google
+    </button>
+  </div>
+</div>
+
+<!-- ── Main app ────────────────────────────────────────────── -->
+<div id="app" hidden>
+
+  <div class="sticky-top">
+    <header class="app-header">
+      <div>
+        <div class="subtitle">Wine Journal</div>
+        <h1>Tasting Notes</h1>
+      </div>
+      <div id="user-avatar" class="user-avatar" onclick="handleAvatarClick()" title="Sign out"></div>
+    </header>
+    <nav class="tab-bar">
+      <button class="tab-btn active" onclick="showView('form', this)">New Review</button>
+      <button class="tab-btn"        onclick="showView('reviews', this)">My Reviews</button>
+    </nav>
+  </div>
+
+  <!-- ── New Review Form ──────────────────────────────────── -->
+  <div id="view-form" class="view active">
+
+    <div class="card">
+      <div class="section-title">Wine Information</div>
+
+      <div class="field">
+        <label>Review Date</label>
+        <input type="date" id="reviewDate">
+      </div>
+
+      <div class="field">
+        <label>Producer</label>
+        <input type="text" id="producer" placeholder="e.g. Château Margaux" autocomplete="off">
+      </div>
+
+      <div class="field">
+        <label>Wine Name</label>
+        <input type="text" id="wineName" placeholder="e.g. Grand Vin" autocomplete="off">
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label>Appellation</label>
+          <input type="text" id="appellation" placeholder="e.g. Margaux AOC" autocomplete="off">
+        </div>
+        <div class="field">
+          <label>Vintage</label>
+          <input type="number" id="vintage" placeholder="e.g. 2019" min="1900" max="2099">
+        </div>
+      </div>
+    </div>
+
+    <!-- Scoring -->
+    <div class="card">
+      <div class="section-title">Scoring</div>
+
+      <div class="score-row">
+        <div class="score-label">
+          <div class="name">Nose Intensity</div>
+          <div class="range">0 – 5 points</div>
+        </div>
+        <div class="stepper" data-key="nose" data-max="5">
+          <button class="stepper-btn" data-action="dec">−</button>
+          <div class="stepper-value">0</div>
+          <button class="stepper-btn" data-action="inc">+</button>
+        </div>
+      </div>
+
+      <div class="score-row">
+        <div class="score-label">
+          <div class="name">Flavor Intensity</div>
+          <div class="range">0 – 10 points</div>
+        </div>
+        <div class="stepper" data-key="flavor" data-max="10">
+          <button class="stepper-btn" data-action="dec">−</button>
+          <div class="stepper-value">0</div>
+          <button class="stepper-btn" data-action="inc">+</button>
+        </div>
+      </div>
+
+      <div class="score-row">
+        <div class="score-label">
+          <div class="name">Flavor Characteristics</div>
+          <div class="range">0 – 25 points</div>
+        </div>
+        <div class="stepper" data-key="chars" data-max="25">
+          <button class="stepper-btn" data-action="dec">−</button>
+          <div class="stepper-value">0</div>
+          <button class="stepper-btn" data-action="inc">+</button>
+        </div>
+      </div>
+
+      <div class="score-row">
+        <div class="score-label">
+          <div class="name">Balance</div>
+          <div class="range">0 – 5 points</div>
+        </div>
+        <div class="stepper" data-key="balance" data-max="5">
+          <button class="stepper-btn" data-action="dec">−</button>
+          <div class="stepper-value">0</div>
+          <button class="stepper-btn" data-action="inc">+</button>
+        </div>
+      </div>
+
+      <div class="score-row">
+        <div class="score-label">
+          <div class="name">Length</div>
+          <div class="range">0 – 5 points</div>
+        </div>
+        <div class="stepper" data-key="length" data-max="5">
+          <button class="stepper-btn" data-action="dec">−</button>
+          <div class="stepper-value">0</div>
+          <button class="stepper-btn" data-action="inc">+</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Total -->
+    <div class="total-card">
+      <div>
+        <div class="total-label">Total Score</div>
+        <div class="total-pts">out of 50 points</div>
+      </div>
+      <div>
+        <span class="total-number" id="totalScore">0</span>
+        <span class="total-denom"> / 50</span>
+      </div>
+    </div>
+
+    <!-- Value & Notes -->
+    <div class="card">
+      <div class="section-title">Value &amp; Notes</div>
+      <div class="field-row">
+        <div class="field">
+          <label>Actual Price</label>
+          <div class="price-wrap">
+            <input type="number" id="actualPrice" placeholder="0.00" step="0.01" min="0">
+          </div>
+        </div>
+        <div class="field">
+          <label>Would Pay</label>
+          <div class="price-wrap">
+            <input type="number" id="wouldPay" placeholder="0.00" step="0.01" min="0">
+          </div>
+        </div>
+      </div>
+      <div class="field">
+        <label>Tasting Notes</label>
+        <textarea id="tastingNotes" placeholder="Describe the aromas, flavors, texture, and overall impression…"></textarea>
+      </div>
+    </div>
+
+    <button class="save-btn" onclick="saveReview()">Save Review</button>
+  </div>
+
+  <!-- ── Reviews List ─────────────────────────────────────── -->
+  <div id="view-reviews" class="view">
+    <div id="reviews-container"></div>
+  </div>
+
+</div><!-- /#app -->
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  // ── Supabase config — replace these two lines with your project values ──
+  const SUPABASE_URL      = 'YOUR_SUPABASE_URL';
+  const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
+
+  const { createClient } = supabase;
+  const db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  // ── App state ────────────────────────────────────────────────────
+  let currentUser = null;
+  let reviews     = [];
+
+  // ── Auth ─────────────────────────────────────────────────────────
+  async function signInWithGoogle() {
+    const { error } = await db.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo: window.location.origin + window.location.pathname }
+    });
+    if (error) showToast('Sign-in error: ' + error.message);
+  }
+
+  async function signOut() {
+    await db.auth.signOut();
+  }
+
+  function handleAvatarClick() {
+    if (confirm('Sign out of Wine Journal?')) signOut();
+  }
+
+  db.auth.onAuthStateChange(async (event, session) => {
+    if (session?.user) {
+      currentUser = session.user;
+      showApp(currentUser);
+      await loadReviews();
+    } else {
+      currentUser = null;
+      reviews = [];
+      showLoginScreen();
+    }
+  });
+
+  function showLoginScreen() {
+    document.getElementById('loading-screen').hidden = true;
+    document.getElementById('login-screen').hidden   = false;
+    document.getElementById('app').hidden            = true;
+  }
+
+  function showApp(user) {
+    document.getElementById('loading-screen').hidden = true;
+    document.getElementById('login-screen').hidden   = true;
+    document.getElementById('app').hidden            = false;
+
+    const avatar = document.getElementById('user-avatar');
+    const avatarUrl = user.user_metadata?.avatar_url;
+    if (avatarUrl) {
+      avatar.style.backgroundImage = `url('${avatarUrl}')`;
+      avatar.textContent = '';
+    } else {
+      avatar.style.backgroundImage = '';
+      avatar.textContent = (user.email || 'U')[0].toUpperCase();
+    }
+  }
+
+  // ── Data ─────────────────────────────────────────────────────────
+  async function loadReviews() {
+    const { data, error } = await db
+      .from('reviews')
+      .select('*')
+      .order('created_at', { ascending: false });
+    if (error) { showToast('Failed to load reviews'); return; }
+    reviews = data;
+    renderReviews();
+  }
+
+  // ── Score state ──────────────────────────────────────────────────
+  const scores = { nose: 0, flavor: 0, chars: 0, balance: 0, length: 0 };
+
+  function getTotal() {
+    return Object.values(scores).reduce((a, b) => a + b, 0);
+  }
+
+  function refreshTotal() {
+    document.getElementById('totalScore').textContent = getTotal();
+  }
+
+  // ── Stepper wiring (with hold-to-repeat) ─────────────────────────
+  let holdTimer = null;
+  let holdInterval = null;
+
+  function stepperStep(key, max, delta, display) {
+    const next = scores[key] + delta;
+    if (next < 0 || next > max) return;
+    scores[key] = next;
+    display.textContent = next;
+    refreshTotal();
+    updateStepperButtons(display.closest('.stepper'));
+  }
+
+  function updateStepperButtons(stepperEl) {
+    const key    = stepperEl.dataset.key;
+    const max    = parseInt(stepperEl.dataset.max, 10);
+    const decBtn = stepperEl.querySelector('[data-action="dec"]');
+    const incBtn = stepperEl.querySelector('[data-action="inc"]');
+    decBtn.disabled = scores[key] <= 0;
+    incBtn.disabled = scores[key] >= max;
+  }
+
+  function startHold(key, max, delta, display) {
+    stepperStep(key, max, delta, display);
+    holdTimer = setTimeout(() => {
+      holdInterval = setInterval(() => stepperStep(key, max, delta, display), 80);
+    }, 400);
+  }
+
+  function endHold() {
+    clearTimeout(holdTimer);
+    clearInterval(holdInterval);
+    holdTimer = holdInterval = null;
+  }
+
+  document.querySelectorAll('.stepper').forEach(stepperEl => {
+    const key     = stepperEl.dataset.key;
+    const max     = parseInt(stepperEl.dataset.max, 10);
+    const display = stepperEl.querySelector('.stepper-value');
+
+    stepperEl.querySelectorAll('.stepper-btn').forEach(btn => {
+      const delta = btn.dataset.action === 'inc' ? 1 : -1;
+
+      btn.addEventListener('pointerdown', e => {
+        e.preventDefault();
+        btn.classList.add('pressed');
+        btn.setPointerCapture(e.pointerId);
+        startHold(key, max, delta, display);
+      });
+
+      const stop = () => { btn.classList.remove('pressed'); endHold(); };
+      btn.addEventListener('pointerup',     stop);
+      btn.addEventListener('pointerleave',  stop);
+      btn.addEventListener('pointercancel', stop);
+    });
+
+    updateStepperButtons(stepperEl);
+  });
+
+  // ── Tab navigation ───────────────────────────────────────────────
+  function showView(name, btn) {
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('view-' + name).classList.add('active');
+    btn.classList.add('active');
+    if (name === 'reviews') renderReviews();
+  }
+
+  // ── Save review ──────────────────────────────────────────────────
+  async function saveReview() {
+    const wineName = val('wineName');
+    const producer = val('producer');
+
+    if (!wineName && !producer) {
+      showToast('Add a wine name or producer first');
+      return;
+    }
+
+    const record = {
+      user_id:       currentUser.id,
+      date:          val('reviewDate'),
+      producer,
+      wine_name:     wineName,
+      appellation:   val('appellation'),
+      vintage:       val('vintage'),
+      scores:        { ...scores },
+      total:         getTotal(),
+      actual_price:  val('actualPrice'),
+      would_pay:     val('wouldPay'),
+      tasting_notes: val('tastingNotes'),
+    };
+
+    const { data, error } = await db.from('reviews').insert(record).select().single();
+    if (error) { showToast('Failed to save review'); return; }
+
+    reviews.unshift(data);
+    resetForm();
+    showToast('Review saved!');
+  }
+
+  // ── Delete review ────────────────────────────────────────────────
+  async function deleteReview(id) {
+    if (!confirm('Delete this review? This cannot be undone.')) return;
+    const { error } = await db.from('reviews').delete().eq('id', id);
+    if (error) { showToast('Failed to delete review'); return; }
+    reviews = reviews.filter(r => r.id !== id);
+    renderReviews();
+  }
+
+  function val(id) {
+    return document.getElementById(id).value.trim();
+  }
+
+  function resetForm() {
+    Object.keys(scores).forEach(k => { scores[k] = 0; });
+    refreshTotal();
+
+    document.querySelectorAll('.stepper').forEach(el => {
+      el.querySelector('.stepper-value').textContent = '0';
+      updateStepperButtons(el);
+    });
+
+    ['reviewDate','producer','wineName','appellation','vintage',
+     'actualPrice','wouldPay','tastingNotes']
+      .forEach(id => document.getElementById(id).value = '');
+
+    document.getElementById('reviewDate').value = todayISO();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  // ── Render reviews ───────────────────────────────────────────────
+  function renderReviews() {
+    const container = document.getElementById('reviews-container');
+
+    if (!reviews.length) {
+      container.innerHTML = `
+        <div class="reviews-empty">
+          <div class="empty-icon">🍷</div>
+          <div class="empty-title">No reviews yet</div>
+          <div class="empty-sub">Saved reviews will appear here.</div>
+        </div>`;
+      return;
+    }
+
+    container.innerHTML = reviews.map(r => {
+      const title    = esc(r.wine_name || r.producer || 'Unnamed Wine');
+      const metaParts = [r.producer && esc(r.producer), r.vintage, r.date && formatDate(r.date)].filter(Boolean);
+
+      const detailItems = [
+        r.appellation  && { label: 'Appellation',  value: esc(r.appellation) },
+        r.vintage      && { label: 'Vintage',       value: esc(r.vintage) },
+        r.actual_price && { label: 'Actual Price',  value: '$' + esc(r.actual_price) },
+        r.would_pay    && { label: 'Would Pay',     value: '$' + esc(r.would_pay) },
+        r.date         && { label: 'Date Tasted',   value: formatDate(r.date) },
+      ].filter(Boolean);
+
+      const gridHTML = detailItems.length
+        ? `<div class="detail-grid">${detailItems.map(i =>
+            `<div class="detail-item"><label>${i.label}</label><span>${i.value}</span></div>`
+          ).join('')}</div>`
+        : '';
+
+      const notesHTML = r.tasting_notes
+        ? `<div class="notes-block"><label>Tasting Notes</label><p>${esc(r.tasting_notes)}</p></div>`
+        : '';
+
+      return `
+        <div class="review-card">
+          <div class="review-card-header" onclick="toggleDetail(${r.id})">
+            <div>
+              <div class="review-wine-name">${title}</div>
+              <div class="review-meta">${metaParts.join(' · ')}</div>
+            </div>
+            <div class="score-badge">${r.total} / 50</div>
+          </div>
+          <div class="review-detail" id="detail-${r.id}">
+            ${gridHTML}
+            <div class="breakdown">
+              <div class="breakdown-row"><span class="b-name">Nose Intensity</span>        <span class="b-val">${r.scores.nose}    / 5</span></div>
+              <div class="breakdown-row"><span class="b-name">Flavor Intensity</span>      <span class="b-val">${r.scores.flavor}  / 10</span></div>
+              <div class="breakdown-row"><span class="b-name">Flavor Characteristics</span><span class="b-val">${r.scores.chars}   / 25</span></div>
+              <div class="breakdown-row"><span class="b-name">Balance</span>               <span class="b-val">${r.scores.balance} / 5</span></div>
+              <div class="breakdown-row"><span class="b-name">Length</span>                <span class="b-val">${r.scores.length}  / 5</span></div>
+            </div>
+            ${notesHTML}
+            <button class="delete-btn" onclick="deleteReview(${r.id})">Delete Review</button>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  function toggleDetail(id) {
+    document.getElementById('detail-' + id).classList.toggle('open');
+  }
+
+  // ── Toast ────────────────────────────────────────────────────────
+  let toastTimer = null;
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => t.classList.remove('show'), 2400);
+  }
+
+  // ── Helpers ──────────────────────────────────────────────────────
+  function esc(s) {
+    return String(s)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  function todayISO() {
+    return new Date().toLocaleDateString('en-CA');
+  }
+
+  function formatDate(iso) {
+    if (!iso) return '';
+    const [y, m, d] = iso.split('-');
+    return `${parseInt(m)}/${parseInt(d)}/${y}`;
+  }
+
+  // ── Init ─────────────────────────────────────────────────────────
+  document.getElementById('reviewDate').value = todayISO();
+</script>
+</body>
+</html>
