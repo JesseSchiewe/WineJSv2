@@ -1007,6 +1007,7 @@
   let flavorSearchTerm = '';
   let flavorSelectedOnly = false;
   let editingReviewId = null;
+  let authActionInFlight = false;
 
   // ── Flavor options ───────────────────────────────────────────────
   const RedWineDarkFruit = [
@@ -1216,25 +1217,35 @@
   }
 
   async function signOut() {
+    if (authActionInFlight) return;
+    authActionInFlight = true;
     showToast('Signing out…');
-    const { error } = await db.auth.signOut();
-    if (error) showToast('Sign-out failed: ' + error.message);
+    try {
+      const { error } = await db.auth.signOut();
+      if (error) showToast('Sign-out failed: ' + error.message);
+    } finally {
+      authActionInFlight = false;
+    }
   }
 
   function handleAvatarClick() {
     signOut();
   }
 
-  db.auth.onAuthStateChange(async (event, session) => {
-    if (session?.user) {
-      currentUser = session.user;
-      showApp(currentUser);
-      await loadReviews();
-    } else {
-      currentUser = null;
-      reviews = [];
-      showLoginScreen();
-    }
+  db.auth.onAuthStateChange((event, session) => {
+    // Supabase advises against awaiting other Supabase calls inside this callback
+    // because it can hold the auth lock and deadlock later auth operations.
+    window.setTimeout(() => {
+      if (session?.user) {
+        currentUser = session.user;
+        showApp(currentUser);
+        void loadReviews();
+      } else {
+        currentUser = null;
+        reviews = [];
+        showLoginScreen();
+      }
+    }, 0);
   });
 
   function showLoginScreen() {
