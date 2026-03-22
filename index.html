@@ -1216,11 +1216,13 @@
   }
 
   async function signOut() {
-    await db.auth.signOut();
+    showToast('Signing out…');
+    const { error } = await db.auth.signOut();
+    if (error) showToast('Sign-out failed: ' + error.message);
   }
 
   function handleAvatarClick() {
-    if (confirm('Sign out of WineJesse?')) signOut();
+    signOut();
   }
 
   db.auth.onAuthStateChange(async (event, session) => {
@@ -1351,8 +1353,14 @@
   // ── Save review ──────────────────────────────────────────────────
   async function saveReview() {
     if (!currentUser?.id) {
-      showToast('Please sign in, then try again');
-      return;
+      // Auth state may not have fired yet — check session directly
+      const { data: { session } } = await db.auth.getSession();
+      if (session?.user) {
+        currentUser = session.user;
+      } else {
+        showToast('Please sign in first');
+        return;
+      }
     }
 
     const saveBtn = document.getElementById('saveBtn');
@@ -1383,21 +1391,21 @@
 
       if (editingReviewId) {
         const { data, error } = await db.from('reviews').update(record).eq('id', editingReviewId).select().single();
-        if (error) { showToast('Failed to update review: ' + error.message); return; }
+        if (error) { console.error('Update error:', error); showToast('Update failed: ' + error.message); return; }
         const idx = reviews.findIndex(r => r.id === editingReviewId);
         if (idx !== -1) reviews[idx] = data;
         resetForm();
         showToast('Review updated!');
       } else {
         const { data, error } = await db.from('reviews').insert(record).select().single();
-        if (error) { showToast('Failed to save review: ' + error.message); return; }
+        if (error) { console.error('Insert error:', error); showToast('Save failed: ' + error.message); return; }
         reviews.unshift(data);
         resetForm();
         showToast('Review saved!');
       }
     } catch (err) {
-      showToast('Failed to save review');
-      console.error(err);
+      console.error('saveReview exception:', err);
+      showToast('Error: ' + (err?.message || 'Unknown error'));
     } finally {
       if (saveBtn) saveBtn.disabled = false;
     }
