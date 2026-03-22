@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>Wine Journal</title>
+  <title>WineJesse</title>
   <style>
     :root {
       --wine:        #7B2D3A;
@@ -230,7 +230,7 @@
 
     .field textarea {
       resize: vertical;
-      min-height: 110px;
+      min-height: 180px;
       line-height: 1.5;
     }
 
@@ -760,6 +760,24 @@
 
     .delete-btn:active { background: #D94040; color: white; }
 
+    .edit-btn {
+      width: 100%;
+      padding: 10px;
+      border: 1.5px solid var(--wine);
+      border-radius: 10px;
+      background: none;
+      color: var(--wine);
+      font-size: 14px;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      margin-bottom: 8px;
+      transition: background 0.15s, color 0.15s;
+      touch-action: manipulation;
+    }
+
+    .edit-btn:active { background: var(--wine); color: white; }
+
     /* ── Responsive ─────────────────────────────────────────── */
     @media (min-width: 500px) {
       .view { padding: 24px; }
@@ -781,7 +799,7 @@
 <div id="login-screen" hidden>
   <div class="login-card">
     <div class="login-wine-icon">🍷</div>
-    <div class="login-title">Wine Journal</div>
+    <div class="login-title">WineJesse</div>
     <div class="login-sub">Sign in to save and sync<br>your tasting notes</div>
     <button class="google-btn" onclick="signInWithGoogle()">
       <svg width="20" height="20" viewBox="0 0 48 48" aria-hidden="true">
@@ -801,7 +819,7 @@
   <div class="sticky-top">
     <header class="app-header">
       <div>
-        <div class="subtitle">Wine Journal</div>
+        <div class="subtitle">WineJesse</div>
         <h1>Tasting Notes</h1>
       </div>
       <div id="user-avatar" class="user-avatar" onclick="handleAvatarClick()" title="Sign out"></div>
@@ -914,11 +932,11 @@
     <div class="total-card">
       <div>
         <div class="total-label">Total Score</div>
-        <div class="total-pts">out of 50 points</div>
+        <div class="total-pts">out of 100 points</div>
       </div>
       <div>
         <span class="total-number" id="totalScore">0</span>
-        <span class="total-denom"> / 50</span>
+        <span class="total-denom"> / 100</span>
       </div>
     </div>
 
@@ -960,7 +978,7 @@
       <div id="flavor-groups" class="flavor-groups"></div>
     </div>
 
-    <button class="save-btn" onclick="saveReview()">Save Review</button>
+    <button class="save-btn" id="saveBtn" onclick="saveReview()">Save Review</button>
   </div>
 
   <!-- ── Reviews List ─────────────────────────────────────── -->
@@ -984,8 +1002,11 @@
   let currentUser = null;
   let reviews     = [];
   const selectedFlavors = new Set();
+  const defaultOpenFlavorGroups = ['Dark Fruit', 'Red Fruit'];
+  const openFlavorGroups = new Set(defaultOpenFlavorGroups);
   let flavorSearchTerm = '';
   let flavorSelectedOnly = false;
+  let editingReviewId = null;
 
   // ── Flavor options ───────────────────────────────────────────────
   const RedWineDarkFruit = [
@@ -1180,6 +1201,11 @@
     { label: 'Faults', options: RedWineFaults, color: 'tan' }
   ];
 
+  const flavorColorMap = {};
+  RedWineFlavorOptions.forEach(category => {
+    category.options.forEach(option => { flavorColorMap[option.value] = category.color; });
+  });
+
   // ── Auth ─────────────────────────────────────────────────────────
   async function signInWithGoogle() {
     const { error } = await db.auth.signInWithOAuth({
@@ -1194,7 +1220,7 @@
   }
 
   function handleAvatarClick() {
-    if (confirm('Sign out of Wine Journal?')) signOut();
+    if (confirm('Sign out of WineJesse?')) signOut();
   }
 
   db.auth.onAuthStateChange(async (event, session) => {
@@ -1246,7 +1272,8 @@
   const scores = { nose: 0, flavor: 0, chars: 0, balance: 0, length: 0 };
 
   function getTotal() {
-    return Object.values(scores).reduce((a, b) => a + b, 0);
+    const sum = Object.values(scores).reduce((a, b) => a + b, 0);
+    return sum === 0 ? 0 : 50 + sum;
   }
 
   function refreshTotal() {
@@ -1323,34 +1350,106 @@
 
   // ── Save review ──────────────────────────────────────────────────
   async function saveReview() {
-    const wineName = val('wineName');
-    const producer = val('producer');
-
-    if (!wineName && !producer) {
-      showToast('Add a wine name or producer first');
+    if (!currentUser?.id) {
+      showToast('Please sign in, then try again');
       return;
     }
 
-    const record = {
-      user_id:       currentUser.id,
-      date:          val('reviewDate'),
-      producer,
-      wine_name:     wineName,
-      appellation:   val('appellation'),
-      vintage:       val('vintage'),
-      scores:        { ...scores, selected_flavors: Array.from(selectedFlavors) },
-      total:         getTotal(),
-      actual_price:  val('actualPrice'),
-      would_pay:     val('wouldPay'),
-      tasting_notes: val('tastingNotes'),
-    };
+    const saveBtn = document.getElementById('saveBtn');
+    if (saveBtn) saveBtn.disabled = true;
 
-    const { data, error } = await db.from('reviews').insert(record).select().single();
-    if (error) { showToast('Failed to save review'); return; }
+    try {
+      const wineName = val('wineName');
+      const producer = val('producer');
 
-    reviews.unshift(data);
-    resetForm();
-    showToast('Review saved!');
+      if (!wineName && !producer) {
+        showToast('Add a wine name or producer first');
+        return;
+      }
+
+      const record = {
+        user_id:       currentUser.id,
+        date:          val('reviewDate'),
+        producer,
+        wine_name:     wineName,
+        appellation:   val('appellation'),
+        vintage:       val('vintage'),
+        scores:        { ...scores, selected_flavors: Array.from(selectedFlavors) },
+        total:         getTotal(),
+        actual_price:  val('actualPrice'),
+        would_pay:     val('wouldPay'),
+        tasting_notes: val('tastingNotes'),
+      };
+
+      if (editingReviewId) {
+        const { data, error } = await db.from('reviews').update(record).eq('id', editingReviewId).select().single();
+        if (error) { showToast('Failed to update review: ' + error.message); return; }
+        const idx = reviews.findIndex(r => r.id === editingReviewId);
+        if (idx !== -1) reviews[idx] = data;
+        resetForm();
+        showToast('Review updated!');
+      } else {
+        const { data, error } = await db.from('reviews').insert(record).select().single();
+        if (error) { showToast('Failed to save review: ' + error.message); return; }
+        reviews.unshift(data);
+        resetForm();
+        showToast('Review saved!');
+      }
+    } catch (err) {
+      showToast('Failed to save review');
+      console.error(err);
+    } finally {
+      if (saveBtn) saveBtn.disabled = false;
+    }
+  }
+
+  // ── Edit review ─────────────────────────────────────────────────
+  function editReview(id) {
+    const r = reviews.find(review => review.id === id);
+    if (!r) return;
+
+    editingReviewId = id;
+
+    document.getElementById('reviewDate').value  = r.date        || '';
+    document.getElementById('producer').value    = r.producer    || '';
+    document.getElementById('wineName').value    = r.wine_name   || '';
+    document.getElementById('appellation').value = r.appellation || '';
+    document.getElementById('vintage').value     = r.vintage     || '';
+    document.getElementById('actualPrice').value = r.actual_price || '';
+    document.getElementById('wouldPay').value    = r.would_pay   || '';
+    document.getElementById('tastingNotes').value = r.tasting_notes || '';
+
+    const savedScores = r.scores || {};
+    ['nose','flavor','chars','balance','length'].forEach(key => {
+      scores[key] = savedScores[key] || 0;
+    });
+    document.querySelectorAll('.stepper').forEach(el => {
+      const key = el.dataset.key;
+      el.querySelector('.stepper-value').textContent = String(scores[key]);
+      updateStepperButtons(el);
+    });
+    refreshTotal();
+
+    selectedFlavors.clear();
+    const savedFlavors = Array.isArray(savedScores.selected_flavors) ? savedScores.selected_flavors : [];
+    savedFlavors.forEach(f => selectedFlavors.add(f));
+    openFlavorGroups.clear();
+    defaultOpenFlavorGroups.forEach(label => openFlavorGroups.add(label));
+    flavorSearchTerm = '';
+    flavorSelectedOnly = false;
+    const flavorSearch = document.getElementById('flavorSearch');
+    if (flavorSearch) flavorSearch.value = '';
+    refreshSelectedOnlyToggle();
+    renderFlavorSelector();
+
+    const saveBtn = document.getElementById('saveBtn');
+    if (saveBtn) saveBtn.textContent = 'Update Review';
+
+    const formTab = document.querySelector('.tab-btn');
+    showView('form', formTab);
+    formTab.classList.add('active');
+    document.querySelectorAll('.tab-btn').forEach((b, i) => { if (i !== 0) b.classList.remove('active'); });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   // ── Delete review ────────────────────────────────────────────────
@@ -1367,8 +1466,14 @@
   }
 
   function resetForm() {
+    editingReviewId = null;
+    const saveBtn = document.getElementById('saveBtn');
+    if (saveBtn) saveBtn.textContent = 'Save Review';
+
     Object.keys(scores).forEach(k => { scores[k] = 0; });
     selectedFlavors.clear();
+    openFlavorGroups.clear();
+    defaultOpenFlavorGroups.forEach(label => openFlavorGroups.add(label));
     flavorSearchTerm = '';
     flavorSelectedOnly = false;
     refreshTotal();
@@ -1405,6 +1510,14 @@
 
     if (!groups || !selectedCount) return;
 
+    const currentlyOpen = Array.from(groups.querySelectorAll('.flavor-group[open]'))
+      .map(group => group.dataset.groupLabel)
+      .filter(Boolean);
+    if (currentlyOpen.length) {
+      openFlavorGroups.clear();
+      currentlyOpen.forEach(label => openFlavorGroups.add(label));
+    }
+
     selectedCount.textContent = String(selectedFlavors.size);
 
     const search = flavorSearchTerm.trim().toLowerCase();
@@ -1423,16 +1536,16 @@
     }
 
     groups.innerHTML = visibleCategories.map((category, index) => {
-      const selectedInGroup = RedWineFlavorOptions
-        .find(group => group.label === category.label)
-        .options.filter(o => selectedFlavors.has(o.value)).length;
+      const allOptionsInGroup = RedWineFlavorOptions.find(group => group.label === category.label)?.options || [];
+      const selectedInGroup = allOptionsInGroup.filter(o => selectedFlavors.has(o.value)).length;
       const optionsHtml = category.options.map(option => {
         const selected = selectedFlavors.has(option.value) ? 'selected' : '';
         return `<button type="button" class="flavor-chip ${selected}" data-flavor="${esc(option.value)}">${esc(option.label)}</button>`;
       }).join('');
+      const isOpen = openFlavorGroups.has(category.label);
 
       return `
-        <details class="flavor-group" ${index < 2 ? 'open' : ''}>
+        <details class="flavor-group" data-group-label="${esc(category.label)}" ${isOpen ? 'open' : ''}>
           <summary>
             <span class="flavor-group-title">
               <span class="flavor-dot" style="background:${category.color};"></span>
@@ -1443,6 +1556,18 @@
           <div class="flavor-options">${optionsHtml}</div>
         </details>`;
     }).join('');
+
+    groups.querySelectorAll('.flavor-group').forEach(group => {
+      group.addEventListener('toggle', () => {
+        const label = group.dataset.groupLabel;
+        if (!label) return;
+        if (group.open) {
+          openFlavorGroups.add(label);
+        } else {
+          openFlavorGroups.delete(label);
+        }
+      });
+    });
   }
 
   document.getElementById('flavor-groups').addEventListener('pointerdown', event => {
@@ -1531,7 +1656,12 @@
 
       const flavorValues = Array.isArray(r.scores?.selected_flavors) ? r.scores.selected_flavors : [];
       const flavorsHTML = flavorValues.length
-        ? `<div class="notes-block"><label>Selected Flavors</label><div class="selected-flavors">${flavorValues.map(f => `<span class="selected-flavor-pill">${esc(f)}</span>`).join('')}</div></div>`
+        ? `<div class="notes-block"><label>Selected Flavors</label><div class="selected-flavors">${
+            flavorValues.map(f => {
+              const color = flavorColorMap[f] || 'var(--border)';
+              return `<span class="selected-flavor-pill" style="border-color:${color};color:${color}">${esc(f)}</span>`;
+            }).join('')
+          }</div></div>`
         : '';
 
       return `
@@ -1541,7 +1671,7 @@
               <div class="review-wine-name">${title}</div>
               <div class="review-meta">${metaParts.join(' · ')}</div>
             </div>
-            <div class="score-badge">${r.total} / 50</div>
+            <div class="score-badge">${r.total} / 100</div>
           </div>
           <div class="review-detail" id="detail-${r.id}">
             ${gridHTML}
@@ -1554,6 +1684,7 @@
             </div>
             ${flavorsHTML}
             ${notesHTML}
+            <button class="edit-btn" onclick="editReview(${r.id})">Edit Review</button>
             <button class="delete-btn" onclick="deleteReview(${r.id})">Delete Review</button>
           </div>
         </div>`;
