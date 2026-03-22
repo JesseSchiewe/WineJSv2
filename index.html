@@ -99,6 +99,123 @@
     .google-btn:hover  { background: var(--cream); border-color: #bbb; }
     .google-btn:active { background: #ede8e3; transform: scale(0.98); }
 
+    .login-divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 18px 0;
+      color: var(--text-muted);
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+    }
+
+    .login-divider::before,
+    .login-divider::after {
+      content: '';
+      height: 1px;
+      background: var(--border);
+      flex: 1;
+    }
+
+    .auth-mode-tabs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .auth-mode-btn {
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      background: white;
+      color: var(--text-muted);
+      font-size: 14px;
+      font-weight: 700;
+      font-family: inherit;
+      padding: 10px 12px;
+      cursor: pointer;
+      touch-action: manipulation;
+      transition: border-color 0.15s, background 0.15s, color 0.15s;
+    }
+
+    .auth-mode-btn.active {
+      border-color: var(--wine);
+      background: rgba(123,45,58,0.08);
+      color: var(--wine);
+    }
+
+    .email-auth {
+      text-align: left;
+    }
+
+    .login-field {
+      margin-bottom: 10px;
+    }
+
+    .login-field label {
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      margin-bottom: 5px;
+    }
+
+    .login-field input {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      font-size: 16px;
+      font-family: inherit;
+      color: var(--text);
+      background: var(--cream);
+      transition: border-color 0.2s, background 0.2s;
+    }
+
+    .login-field input:focus {
+      outline: none;
+      border-color: var(--wine);
+      background: white;
+    }
+
+    .email-auth-btn {
+      width: 100%;
+      padding: 13px 16px;
+      border: none;
+      border-radius: 12px;
+      background: var(--wine);
+      color: white;
+      font-size: 15px;
+      font-weight: 700;
+      font-family: inherit;
+      cursor: pointer;
+      touch-action: manipulation;
+      transition: background 0.15s, transform 0.1s;
+    }
+
+    .email-auth-btn:active {
+      background: var(--wine-dark);
+      transform: scale(0.985);
+    }
+
+    .email-auth-btn:disabled {
+      opacity: 0.55;
+      cursor: default;
+      transform: none;
+    }
+
+    .auth-mode-help {
+      margin-top: 10px;
+      font-size: 12px;
+      color: var(--text-muted);
+      line-height: 1.45;
+      text-align: center;
+    }
+
     /* ── User avatar in header ──────────────────────────────── */
     .user-avatar {
       width: 36px; height: 36px;
@@ -1341,6 +1458,27 @@
       </svg>
       Sign in with Google
     </button>
+    <div class="login-divider">or</div>
+    <div class="email-auth">
+      <div class="auth-mode-tabs">
+        <button type="button" id="authModeSignIn" class="auth-mode-btn active" onclick="setAuthMode('signin')">Sign In</button>
+        <button type="button" id="authModeCreate" class="auth-mode-btn" onclick="setAuthMode('signup')">Create Account</button>
+      </div>
+      <div class="login-field">
+        <label for="authEmail">Email</label>
+        <input type="email" id="authEmail" autocomplete="email" placeholder="you@example.com">
+      </div>
+      <div class="login-field">
+        <label for="authPassword">Password</label>
+        <input type="password" id="authPassword" autocomplete="current-password" placeholder="Enter your password">
+      </div>
+      <div class="login-field" id="confirmPasswordField" hidden>
+        <label for="authConfirmPassword">Confirm Password</label>
+        <input type="password" id="authConfirmPassword" autocomplete="new-password" placeholder="Re-enter your password">
+      </div>
+      <button type="button" id="emailAuthBtn" class="email-auth-btn" onclick="submitEmailAuth()">Sign In with Email</button>
+      <div id="authModeHelp" class="auth-mode-help">Use your email and password to sign in without Google.</div>
+    </div>
   </div>
 </div>
 
@@ -1592,6 +1730,7 @@
   let flavorSelectedOnly = false;
   let editingReviewId = null;
   let authActionInFlight = false;
+  let authMode = 'signin';
   let sortKey = 'total';
   let sortDir = -1; // -1 = descending, 1 = ascending
   let reviewSearchTerm = '';
@@ -1879,6 +2018,89 @@
     if (error) showToast('Sign-in error: ' + error.message);
   }
 
+  function setAuthMode(mode) {
+    authMode = mode === 'signup' ? 'signup' : 'signin';
+
+    const signInBtn = document.getElementById('authModeSignIn');
+    const createBtn = document.getElementById('authModeCreate');
+    const confirmField = document.getElementById('confirmPasswordField');
+    const password = document.getElementById('authPassword');
+    const confirm = document.getElementById('authConfirmPassword');
+    const submitBtn = document.getElementById('emailAuthBtn');
+    const help = document.getElementById('authModeHelp');
+
+    if (signInBtn) signInBtn.classList.toggle('active', authMode === 'signin');
+    if (createBtn) createBtn.classList.toggle('active', authMode === 'signup');
+    if (confirmField) confirmField.hidden = authMode !== 'signup';
+    if (password) password.autocomplete = authMode === 'signup' ? 'new-password' : 'current-password';
+    if (confirm) confirm.value = authMode === 'signin' ? '' : confirm.value;
+    if (submitBtn) submitBtn.textContent = authMode === 'signup' ? 'Create Email Account' : 'Sign In with Email';
+    if (help) {
+      help.textContent = authMode === 'signup'
+        ? 'Create a WineJesse account using your email and password.'
+        : 'Use your email and password to sign in without Google.';
+    }
+  }
+
+  async function submitEmailAuth() {
+    const emailInput = document.getElementById('authEmail');
+    const passwordInput = document.getElementById('authPassword');
+    const confirmInput = document.getElementById('authConfirmPassword');
+    const submitBtn = document.getElementById('emailAuthBtn');
+
+    const email = emailInput?.value.trim() || '';
+    const password = passwordInput?.value || '';
+    const confirmPassword = confirmInput?.value || '';
+
+    if (!email || !password) {
+      showToast('Enter your email and password');
+      return;
+    }
+
+    if (authMode === 'signup') {
+      if (password.length < 6) {
+        showToast('Password must be at least 6 characters');
+        return;
+      }
+      if (password !== confirmPassword) {
+        showToast('Passwords do not match');
+        return;
+      }
+    }
+
+    if (submitBtn) submitBtn.disabled = true;
+
+    try {
+      if (authMode === 'signup') {
+        const { data, error } = await db.auth.signUp({
+          email,
+          password,
+          options: { emailRedirectTo: window.location.origin + window.location.pathname }
+        });
+        if (error) {
+          showToast('Account creation failed: ' + error.message);
+          return;
+        }
+
+        if (data.session) {
+          showToast('Account created');
+        } else {
+          showToast('Account created. Check your email to confirm your account.');
+        }
+        return;
+      }
+
+      const { error } = await db.auth.signInWithPassword({ email, password });
+      if (error) {
+        showToast('Sign-in failed: ' + error.message);
+        return;
+      }
+      showToast('Signed in');
+    } finally {
+      if (submitBtn) submitBtn.disabled = false;
+    }
+  }
+
   async function signOut() {
     if (authActionInFlight) return;
     authActionInFlight = true;
@@ -1915,6 +2137,13 @@
     document.getElementById('loading-screen').hidden = true;
     document.getElementById('login-screen').hidden   = false;
     document.getElementById('app').hidden            = true;
+    const email = document.getElementById('authEmail');
+    const password = document.getElementById('authPassword');
+    const confirm = document.getElementById('authConfirmPassword');
+    if (email) email.value = '';
+    if (password) password.value = '';
+    if (confirm) confirm.value = '';
+    setAuthMode(authMode);
   }
 
   function showApp(user) {
@@ -2351,6 +2580,16 @@
     exportToolsData(mode);
   });
 
+  ['authEmail', 'authPassword', 'authConfirmPassword'].forEach(id => {
+    const input = document.getElementById(id);
+    if (!input) return;
+    input.addEventListener('keydown', event => {
+      if (event.key !== 'Enter') return;
+      event.preventDefault();
+      submitEmailAuth();
+    });
+  });
+
   document.addEventListener('click', event => {
     const toolsDropdown = document.getElementById('toolsDropdown');
     if (!toolsDropdown) return;
@@ -2783,6 +3022,7 @@
 
   // ── Init ─────────────────────────────────────────────────────────
   document.getElementById('reviewDate').value = todayISO();
+  setAuthMode(authMode);
   renderWineColorSelector();
   refreshSelectedOnlyToggle();
   refreshSortControls();
