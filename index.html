@@ -1280,6 +1280,7 @@
         <button class="sort-pill"        onclick="setSort('vintage')"    data-sort="vintage">Vintage</button>
         <button class="sort-pill"        onclick="setSort('actual_price')" data-sort="actual_price">Actual Price</button>
         <button class="sort-pill"        onclick="setSort('would_pay')"  data-sort="would_pay">Would Pay</button>
+        <button class="sort-pill"        onclick="setSort('best_value')" data-sort="best_value">Best Value</button>
       </div>
     </div>
     <div id="reviews-container"></div>
@@ -2059,6 +2060,12 @@
       case 'vintage':     return r.vintage ? String(r.vintage).padStart(4, '0') : '';
       case 'actual_price': return parseFloat(r.actual_price) || 0;
       case 'would_pay':   return parseFloat(r.would_pay)     || 0;
+      case 'best_value': {
+        const paid = parseFloat(r.actual_price);
+        const worth = parseFloat(r.would_pay);
+        // Both must be present and actual_price > 0 to get a ratio; otherwise sort to bottom.
+        return (paid > 0 && worth > 0) ? worth / paid : -1;
+      }
       default:            return 0;
     }
   }
