@@ -234,6 +234,218 @@
       line-height: 1.5;
     }
 
+    .wine-color-card {
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      background: white;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      margin-bottom: 18px;
+    }
+
+    .wine-color-card summary {
+      list-style: none;
+      cursor: pointer;
+      padding: 16px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    .wine-color-card summary::-webkit-details-marker { display: none; }
+
+    .wine-color-summary-copy {
+      display: grid;
+      gap: 4px;
+    }
+
+    .wine-color-title {
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .wine-color-subtitle {
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.45;
+    }
+
+    .wine-color-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: var(--cream);
+      color: var(--wine);
+      font-size: 12px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .wine-color-status-dot,
+    .wine-color-review-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--wine-color, transparent);
+      box-shadow: inset 0 0 0 1px rgba(0,0,0,0.08);
+      flex-shrink: 0;
+    }
+
+    .wine-color-body {
+      padding: 0 18px 18px;
+      border-top: 1px solid var(--border);
+      background:
+        radial-gradient(circle at top right, rgba(200,169,110,0.14), transparent 34%),
+        linear-gradient(180deg, #fff 0%, #fcf9f5 100%);
+    }
+
+    .wine-color-help {
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.5;
+      margin: 14px 0 12px;
+    }
+
+    .wine-color-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+
+    .wine-color-selected-label {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .wine-color-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .wine-color-option {
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.88);
+      border-radius: 14px;
+      padding: 12px 10px 10px;
+      display: grid;
+      justify-items: center;
+      gap: 10px;
+      cursor: pointer;
+      transition: transform 0.08s, border-color 0.15s, box-shadow 0.15s, background 0.15s;
+      touch-action: manipulation;
+      min-height: 146px;
+    }
+
+    .wine-color-option:hover {
+      border-color: rgba(123,45,58,0.35);
+      box-shadow: 0 10px 22px rgba(80,29,38,0.08);
+    }
+
+    .wine-color-option:active {
+      transform: scale(0.98);
+    }
+
+    .wine-color-option.selected {
+      border-color: var(--wine);
+      background: rgba(123,45,58,0.06);
+      box-shadow: 0 12px 28px rgba(80,29,38,0.10);
+    }
+
+    .wine-color-glass {
+      position: relative;
+      width: 58px;
+      height: 88px;
+      border: 2px solid rgba(60,60,60,0.35);
+      border-top-width: 1.5px;
+      border-radius: 18px 18px 24px 24px / 14px 14px 30px 30px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.9), rgba(255,255,255,0.28));
+      overflow: hidden;
+      box-shadow: inset 8px 0 10px rgba(255,255,255,0.5), inset -8px 0 10px rgba(255,255,255,0.28);
+    }
+
+    .wine-color-glass::before {
+      content: '';
+      position: absolute;
+      left: 50%;
+      bottom: -18px;
+      width: 5px;
+      height: 24px;
+      transform: translateX(-50%);
+      background: linear-gradient(180deg, rgba(90,90,90,0.35), rgba(60,60,60,0.7));
+      border-radius: 999px;
+    }
+
+    .wine-color-glass::after {
+      content: '';
+      position: absolute;
+      left: 50%;
+      bottom: -24px;
+      width: 34px;
+      height: 6px;
+      transform: translateX(-50%);
+      background: rgba(40,40,40,0.85);
+      border-radius: 999px;
+      filter: blur(0.2px);
+    }
+
+    .wine-color-liquid {
+      position: absolute;
+      left: 6px;
+      right: 6px;
+      bottom: 8px;
+      height: 48%;
+      border-radius: 0 0 18px 18px;
+      background:
+        radial-gradient(circle at 50% 12%, rgba(255,255,255,0.36), transparent 28%),
+        linear-gradient(180deg, rgba(255,255,255,0.18), rgba(0,0,0,0.08)),
+        var(--wine-color, #d9d0a6);
+      box-shadow: inset 0 8px 12px rgba(255,255,255,0.14), inset 0 -8px 12px rgba(0,0,0,0.12);
+    }
+
+    .wine-color-liquid::before {
+      content: '';
+      position: absolute;
+      top: -4px;
+      left: 0;
+      right: 0;
+      height: 8px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.24);
+      mix-blend-mode: screen;
+    }
+
+    .wine-color-option-label {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text);
+      text-align: center;
+      line-height: 1.25;
+    }
+
+    .wine-color-review {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 10px;
+      border-radius: 10px;
+      background: var(--cream);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-weight: 600;
+      font-size: 13px;
+    }
+
     /* ── Flavor selector ───────────────────────────────────── */
     .flavor-help {
       font-size: 13px;
@@ -444,6 +656,10 @@
     }
 
     @media (max-width: 430px) {
+      .wine-color-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
       .flavor-controls {
         grid-template-columns: 1fr;
       }
@@ -963,6 +1179,24 @@
       </div>
     </div>
 
+    <details class="wine-color-card" id="wineColorDetails">
+      <summary>
+        <div class="wine-color-summary-copy">
+          <div class="wine-color-title">Wine Color</div>
+          <div class="wine-color-subtitle">Compare the glass to the wine in front of you, then pick the closest match.</div>
+        </div>
+        <div id="wineColorStatus" class="wine-color-status">None selected</div>
+      </summary>
+      <div class="wine-color-body">
+        <div class="wine-color-help">Inspired by the Wine Folly color chart. Use this when you want to record the wine's visual hue alongside aromas and structure.</div>
+        <div class="wine-color-toolbar">
+          <div id="wineColorSelectedLabel" class="wine-color-selected-label">No wine color selected</div>
+          <button type="button" id="clearWineColor" class="flavor-action-btn">Clear color</button>
+        </div>
+        <div id="wineColorGrid" class="wine-color-grid"></div>
+      </div>
+    </details>
+
     <div class="card">
       <div class="section-title">Flavor Selector</div>
       <div class="flavor-help">Pick all flavor notes that apply. You can expand categories and select as many as needed.</div>
@@ -1004,10 +1238,43 @@
   const selectedFlavors = new Set();
   const defaultOpenFlavorGroups = ['Dark Fruit', 'Red Fruit'];
   const openFlavorGroups = new Set(defaultOpenFlavorGroups);
+  let selectedWineColor = '';
   let flavorSearchTerm = '';
   let flavorSelectedOnly = false;
   let editingReviewId = null;
   let authActionInFlight = false;
+
+  const WineColorOptions = [
+    { value: 'Pale Straw', color: '#efe8c6' },
+    { value: 'Medium Straw', color: '#e7df9e' },
+    { value: 'Deep Straw', color: '#d8cb6d' },
+    { value: 'Pale Yellow', color: '#efe39c' },
+    { value: 'Medium Yellow', color: '#e5d04d' },
+    { value: 'Deep Yellow', color: '#d7ba22' },
+    { value: 'Pale Gold', color: '#ead67f' },
+    { value: 'Medium Gold', color: '#ddb84d' },
+    { value: 'Deep Gold', color: '#cd9726' },
+    { value: 'Pale Amber', color: '#e2a53a' },
+    { value: 'Medium Amber', color: '#c7771c' },
+    { value: 'Deep Amber', color: '#a55d15' },
+    { value: 'Pale Pink', color: '#f1d2d8' },
+    { value: 'Medium Pink', color: '#ea8aa4' },
+    { value: 'Deep Pink', color: '#d84c74' },
+    { value: 'Pale Ruby', color: '#c63f58' },
+    { value: 'Medium Ruby', color: '#a71f40' },
+    { value: 'Deep Ruby', color: '#7d1630' },
+    { value: 'Pale Purple', color: '#9b2a72' },
+    { value: 'Medium Purple', color: '#73205f' },
+    { value: 'Deep Purple', color: '#4b143f' },
+    { value: 'Pale Garnet', color: '#b94d30' },
+    { value: 'Medium Garnet', color: '#94331f' },
+    { value: 'Deep Garnet', color: '#652014' },
+    { value: 'Pale Tawny', color: '#b1612d' },
+    { value: 'Medium Tawny', color: '#8e4623' },
+    { value: 'Deep Tawny', color: '#6b2d16' },
+  ];
+
+  const wineColorMap = Object.fromEntries(WineColorOptions.map(option => [option.value, option.color]));
 
   // ── Flavor options ───────────────────────────────────────────────
   const RedWineDarkFruit = [
@@ -1207,6 +1474,36 @@
     category.options.forEach(option => { flavorColorMap[option.value] = category.color; });
   });
 
+  function renderWineColorSelector() {
+    const grid = document.getElementById('wineColorGrid');
+    const status = document.getElementById('wineColorStatus');
+    const selectedLabel = document.getElementById('wineColorSelectedLabel');
+    if (!grid || !status || !selectedLabel) return;
+
+    const selectedColor = wineColorMap[selectedWineColor] || 'transparent';
+    if (selectedWineColor) {
+      status.innerHTML = `<span class="wine-color-status-dot" style="--wine-color:${selectedColor}"></span>${esc(selectedWineColor)}`;
+      selectedLabel.textContent = `Selected color: ${selectedWineColor}`;
+    } else {
+      status.textContent = 'None selected';
+      selectedLabel.textContent = 'No wine color selected';
+    }
+
+    grid.innerHTML = WineColorOptions.map(option => `
+      <button
+        type="button"
+        class="wine-color-option${selectedWineColor === option.value ? ' selected' : ''}"
+        data-wine-color="${esc(option.value)}"
+        aria-pressed="${selectedWineColor === option.value ? 'true' : 'false'}"
+      >
+        <span class="wine-color-glass">
+          <span class="wine-color-liquid" style="--wine-color:${option.color}"></span>
+        </span>
+        <span class="wine-color-option-label">${esc(option.value)}</span>
+      </button>
+    `).join('');
+  }
+
   // ── Auth ─────────────────────────────────────────────────────────
   async function signInWithGoogle() {
     const { error } = await db.auth.signInWithOAuth({
@@ -1393,7 +1690,7 @@
         wine_name:     wineName,
         appellation:   val('appellation'),
         vintage:       val('vintage'),
-        scores:        { ...scores, selected_flavors: Array.from(selectedFlavors) },
+        scores:        { ...scores, selected_flavors: Array.from(selectedFlavors), wine_color: selectedWineColor },
         total:         getTotal(),
         actual_price:  val('actualPrice'),
         would_pay:     val('wouldPay'),
@@ -1452,12 +1749,14 @@
     selectedFlavors.clear();
     const savedFlavors = Array.isArray(savedScores.selected_flavors) ? savedScores.selected_flavors : [];
     savedFlavors.forEach(f => selectedFlavors.add(f));
+  selectedWineColor = savedScores.wine_color || '';
     openFlavorGroups.clear();
     defaultOpenFlavorGroups.forEach(label => openFlavorGroups.add(label));
     flavorSearchTerm = '';
     flavorSelectedOnly = false;
     const flavorSearch = document.getElementById('flavorSearch');
     if (flavorSearch) flavorSearch.value = '';
+  renderWineColorSelector();
     refreshSelectedOnlyToggle();
     renderFlavorSelector();
 
@@ -1491,6 +1790,7 @@
 
     Object.keys(scores).forEach(k => { scores[k] = 0; });
     selectedFlavors.clear();
+    selectedWineColor = '';
     openFlavorGroups.clear();
     defaultOpenFlavorGroups.forEach(label => openFlavorGroups.add(label));
     flavorSearchTerm = '';
@@ -1509,6 +1809,7 @@
     const flavorSearch = document.getElementById('flavorSearch');
     if (flavorSearch) flavorSearch.value = '';
 
+    renderWineColorSelector();
     refreshSelectedOnlyToggle();
     renderFlavorSelector();
     document.getElementById('reviewDate').value = todayISO();
@@ -1637,6 +1938,21 @@
     renderFlavorSelector();
   });
 
+  document.getElementById('wineColorGrid').addEventListener('click', event => {
+    const option = event.target.closest('.wine-color-option');
+    if (!option) return;
+
+    const nextColor = option.dataset.wineColor || '';
+    selectedWineColor = selectedWineColor === nextColor ? '' : nextColor;
+    renderWineColorSelector();
+  });
+
+  document.getElementById('clearWineColor').addEventListener('click', () => {
+    if (!selectedWineColor) return;
+    selectedWineColor = '';
+    renderWineColorSelector();
+  });
+
   // ── Render reviews ───────────────────────────────────────────────
   function renderReviews() {
     const container = document.getElementById('reviews-container');
@@ -1673,6 +1989,11 @@
         ? `<div class="notes-block"><label>Tasting Notes</label><p>${esc(r.tasting_notes)}</p></div>`
         : '';
 
+      const wineColorValue = r.scores?.wine_color || '';
+      const wineColorHTML = wineColorValue
+        ? `<div class="notes-block"><label>Wine Color</label><div class="wine-color-review"><span class="wine-color-review-dot" style="--wine-color:${wineColorMap[wineColorValue] || 'transparent'}"></span><span>${esc(wineColorValue)}</span></div></div>`
+        : '';
+
       const flavorValues = Array.isArray(r.scores?.selected_flavors) ? r.scores.selected_flavors : [];
       const flavorsHTML = flavorValues.length
         ? `<div class="notes-block"><label>Selected Flavors</label><div class="selected-flavors">${
@@ -1702,6 +2023,7 @@
               <div class="breakdown-row"><span class="b-name">Length</span>                <span class="b-val">${r.scores.length}  / 5</span></div>
             </div>
             ${flavorsHTML}
+            ${wineColorHTML}
             ${notesHTML}
             <button class="edit-btn" onclick="editReview(${r.id})">Edit Review</button>
             <button class="delete-btn" onclick="deleteReview(${r.id})">Delete Review</button>
@@ -1746,6 +2068,7 @@
 
   // ── Init ─────────────────────────────────────────────────────────
   document.getElementById('reviewDate').value = todayISO();
+  renderWineColorSelector();
   refreshSelectedOnlyToggle();
   renderFlavorSelector();
 </script>
