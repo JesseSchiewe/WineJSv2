@@ -234,44 +234,46 @@
       line-height: 1.5;
     }
 
-    .wine-color-card {
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      background: white;
-      box-shadow: var(--shadow);
-      overflow: hidden;
-      margin-bottom: 18px;
+    /* ── Collapsible cards (<details class="card">) ────────── */
+    details.card {
+      padding: 0;
     }
 
-    .wine-color-card summary {
+    details.card > summary {
       list-style: none;
       cursor: pointer;
-      padding: 16px 18px;
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 12px;
+      padding: 16px 20px;
       user-select: none;
       -webkit-user-select: none;
+      touch-action: manipulation;
     }
 
-    .wine-color-card summary::-webkit-details-marker { display: none; }
+    details.card > summary::-webkit-details-marker { display: none; }
 
-    .wine-color-summary-copy {
-      display: grid;
-      gap: 4px;
-    }
-
-    .wine-color-title {
-      font-size: 17px;
-      font-weight: 700;
-      color: var(--text);
-    }
-
-    .wine-color-subtitle {
-      font-size: 13px;
+    details.card > summary::after {
+      content: '›';
+      font-size: 22px;
+      line-height: 0.9;
       color: var(--text-muted);
-      line-height: 1.45;
+      flex-shrink: 0;
+      display: inline-block;
+      transition: transform 0.2s;
+    }
+
+    details.card[open] > summary {
+      border-bottom: 1px solid var(--border);
+    }
+
+    details.card[open] > summary::after {
+      transform: rotate(90deg);
+    }
+
+    .collapsible-body {
+      padding: 16px 20px 20px;
     }
 
     .wine-color-status {
@@ -298,13 +300,7 @@
       flex-shrink: 0;
     }
 
-    .wine-color-body {
-      padding: 0 18px 18px;
-      border-top: 1px solid var(--border);
-      background:
-        radial-gradient(circle at top right, rgba(200,169,110,0.14), transparent 34%),
-        linear-gradient(180deg, #fff 0%, #fcf9f5 100%);
-    }
+
 
     .wine-color-help {
       font-size: 13px;
@@ -1179,16 +1175,13 @@
       </div>
     </div>
 
-    <details class="wine-color-card" id="wineColorDetails">
+    <details class="card" id="wineColorDetails">
       <summary>
-        <div class="wine-color-summary-copy">
-          <div class="wine-color-title">Wine Color</div>
-          <div class="wine-color-subtitle">Compare the glass to the wine in front of you, then pick the closest match.</div>
-        </div>
+        <span class="section-title" style="margin-bottom:0">Wine Color</span>
         <div id="wineColorStatus" class="wine-color-status">None selected</div>
       </summary>
-      <div class="wine-color-body">
-        <div class="wine-color-help">Inspired by the Wine Folly color chart. Use this when you want to record the wine's visual hue alongside aromas and structure.</div>
+      <div class="collapsible-body">
+        <div class="wine-color-help">Compare the glass to the wine in front of you and pick the closest match.</div>
         <div class="wine-color-toolbar">
           <div id="wineColorSelectedLabel" class="wine-color-selected-label">No wine color selected</div>
           <button type="button" id="clearWineColor" class="flavor-action-btn">Clear color</button>
@@ -1197,20 +1190,21 @@
       </div>
     </details>
 
-    <div class="card">
-      <div class="section-title">Flavor Selector</div>
-      <div class="flavor-help">Pick all flavor notes that apply. You can expand categories and select as many as needed.</div>
-      <div class="flavor-summary">
-        <span>Selected flavor notes</span>
+    <details class="card">
+      <summary>
+        <span class="section-title" style="margin-bottom:0">Flavor Selector</span>
         <span id="selectedFlavorCount" class="flavor-count">0</span>
+      </summary>
+      <div class="collapsible-body">
+        <div class="flavor-help">Pick all flavor notes that apply. You can expand categories and select as many as needed.</div>
+        <div class="flavor-controls">
+          <input id="flavorSearch" class="flavor-search" type="search" placeholder="Search flavors (e.g. cherry, pepper, oak)" aria-label="Search flavor notes">
+          <button type="button" id="selectedOnlyToggle" class="flavor-action-btn" aria-pressed="false">Selected only: off</button>
+          <button type="button" id="clearAllFlavors" class="flavor-action-btn warn">Clear all flavors</button>
+        </div>
+        <div id="flavor-groups" class="flavor-groups"></div>
       </div>
-      <div class="flavor-controls">
-        <input id="flavorSearch" class="flavor-search" type="search" placeholder="Search flavors (e.g. cherry, pepper, oak)" aria-label="Search flavor notes">
-        <button type="button" id="selectedOnlyToggle" class="flavor-action-btn" aria-pressed="false">Selected only: off</button>
-        <button type="button" id="clearAllFlavors" class="flavor-action-btn warn">Clear all flavors</button>
-      </div>
-      <div id="flavor-groups" class="flavor-groups"></div>
-    </div>
+    </details>
 
     <button class="save-btn" id="saveBtn" onclick="saveReview()">Save Review</button>
   </div>
@@ -1236,7 +1230,7 @@
   let currentUser = null;
   let reviews     = [];
   const selectedFlavors = new Set();
-  const defaultOpenFlavorGroups = ['Dark Fruit', 'Red Fruit'];
+  const defaultOpenFlavorGroups = [];
   const openFlavorGroups = new Set(defaultOpenFlavorGroups);
   let selectedWineColor = '';
   let flavorSearchTerm = '';
