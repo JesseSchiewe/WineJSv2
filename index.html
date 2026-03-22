@@ -665,12 +665,12 @@
 
     /* More compact spacing for New Review screen */
     #view-form {
-      padding: 14px;
+      padding: 12px;
     }
 
     #view-form .card {
-      padding: 14px;
-      margin-bottom: 10px;
+      padding: 12px;
+      margin-bottom: 8px;
     }
 
     #view-form .section-title {
@@ -678,16 +678,24 @@
     }
 
     #view-form .field {
-      margin-bottom: 10px;
+      margin-bottom: 8px;
     }
 
     #view-form .field input,
     #view-form .field textarea {
-      padding: 10px 12px;
+      padding: 9px 11px;
+    }
+
+    #view-form .field-row {
+      gap: 8px;
+    }
+
+    #view-form .wine-info-card .field-row + .field-row {
+      margin-top: 8px;
     }
 
     #view-form .score-row {
-      padding: 10px 0;
+      padding: 9px 0;
     }
 
     #view-form .stepper-btn {
@@ -715,6 +723,24 @@
       margin-bottom: calc(20px + env(safe-area-inset-bottom));
     }
 
+    #view-form details.card > summary {
+      padding: 12px 14px;
+    }
+
+    #view-form .collapsible-body {
+      padding: 12px 14px 14px;
+    }
+
+    #view-form .wine-color-help,
+    #view-form .flavor-help {
+      margin-bottom: 10px;
+    }
+
+    #view-form .wine-color-toolbar,
+    #view-form .flavor-controls {
+      margin-bottom: 10px;
+    }
+
     .field-row {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -725,14 +751,14 @@
     .price-wrap::before {
       content: '$';
       position: absolute;
-      left: 14px;
+      left: 11px;
       top: 50%;
       transform: translateY(-50%);
       color: var(--text-muted);
       font-size: 16px;
       pointer-events: none;
     }
-    .price-wrap input { padding-left: 26px; }
+    .price-wrap input { padding-left: 30px; }
 
     /* ── Score steppers ─────────────────────────────────────── */
     .score-row {
@@ -942,8 +968,16 @@
       background: var(--cream);
     }
 
+    .reviews-toolbar-top {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 8px;
+      align-items: start;
+      margin-bottom: 10px;
+    }
+
     .review-search-wrap {
-      margin-bottom: 12px;
+      min-width: 0;
     }
 
     .review-search-input {
@@ -970,53 +1004,6 @@
       color: var(--text-muted);
     }
 
-    .reviews-export {
-      margin-top: 14px;
-      background: var(--card);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      padding: 14px 12px;
-      display: grid;
-      gap: 10px;
-      margin-bottom: calc(20px + env(safe-area-inset-bottom));
-    }
-
-    .reviews-export-title {
-      font-size: 12px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.9px;
-      color: var(--wine);
-    }
-
-    .reviews-export-row {
-      display: grid;
-      gap: 8px;
-      grid-template-columns: 1fr auto;
-      align-items: center;
-    }
-
-    .reviews-tools-row {
-      display: flex;
-      justify-content: flex-end;
-    }
-
-    .review-export-select {
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 10px 11px;
-      font-size: 13px;
-      font-family: inherit;
-      color: var(--text);
-      background: white;
-      min-width: 0;
-    }
-
-    .review-export-select:focus {
-      outline: none;
-      border-color: var(--wine);
-    }
-
     .export-dropdown {
       position: relative;
     }
@@ -1034,6 +1021,22 @@
       touch-action: manipulation;
       min-width: 92px;
       transition: background 0.15s, color 0.15s;
+    }
+
+    .tools-icon-btn {
+      min-width: 42px;
+      width: 42px;
+      height: 42px;
+      padding: 0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .tools-icon-btn svg {
+      width: 18px;
+      height: 18px;
+      display: block;
     }
 
     .export-dropdown-btn:active {
@@ -1248,6 +1251,58 @@
 
     .edit-btn:active { background: var(--wine); color: white; }
 
+    .review-export-dropdown {
+      margin-bottom: 8px;
+      position: relative;
+    }
+
+    .review-export-btn {
+      list-style: none;
+      width: 100%;
+      padding: 10px;
+      border: 1.5px solid var(--gold);
+      border-radius: 10px;
+      background: none;
+      color: var(--text);
+      font-size: 14px;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s, border-color 0.15s;
+      touch-action: manipulation;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    .review-export-btn::-webkit-details-marker {
+      display: none;
+    }
+
+    .review-export-btn::after {
+      content: '▾';
+      color: var(--gold);
+      font-size: 12px;
+      line-height: 1;
+      flex-shrink: 0;
+    }
+
+    .review-export-dropdown[open] .review-export-btn {
+      background: rgba(200,169,110,0.14);
+    }
+
+    .review-export-menu {
+      margin-top: 6px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: white;
+      padding: 5px;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.06);
+    }
+
     /* ── Responsive ─────────────────────────────────────────── */
     @media (min-width: 500px) {
       .view { padding: 24px; }
@@ -1258,16 +1313,8 @@
     }
 
     @media (max-width: 430px) {
-      .reviews-export-row {
-        grid-template-columns: 1fr;
-      }
-
-      .reviews-tools-row {
-        justify-content: stretch;
-      }
-
-      .export-dropdown-btn {
-        width: 100%;
+      .reviews-toolbar-top {
+        grid-template-columns: minmax(0, 1fr) auto;
       }
     }
   </style>
@@ -1317,33 +1364,34 @@
   <!-- ── New Review Form ──────────────────────────────────── -->
   <div id="view-form" class="view active">
 
-    <div class="card">
+    <div class="card wine-info-card">
       <div class="section-title">Wine Information</div>
-
-      <div class="field">
-        <label>Review Date</label>
-        <input type="date" id="reviewDate">
-      </div>
-
-      <div class="field">
-        <label>Producer</label>
-        <input type="text" id="producer" placeholder="e.g. Château Margaux" autocomplete="off">
-      </div>
-
-      <div class="field">
-        <label>Wine Name</label>
-        <input type="text" id="wineName" placeholder="e.g. Grand Vin" autocomplete="off">
-      </div>
 
       <div class="field-row">
         <div class="field">
-          <label>Appellation</label>
-          <input type="text" id="appellation" placeholder="e.g. Margaux AOC" autocomplete="off">
+          <label>Review Date</label>
+          <input type="date" id="reviewDate">
         </div>
         <div class="field">
           <label>Vintage</label>
           <input type="number" id="vintage" placeholder="e.g. 2019" min="1900" max="2099">
         </div>
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label>Producer</label>
+          <input type="text" id="producer" placeholder="e.g. Château Margaux" autocomplete="off">
+        </div>
+        <div class="field">
+          <label>Wine Name</label>
+          <input type="text" id="wineName" placeholder="e.g. Grand Vin" autocomplete="off">
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Appellation</label>
+        <input type="text" id="appellation" placeholder="e.g. Margaux AOC" autocomplete="off">
       </div>
     </div>
 
@@ -1483,6 +1531,24 @@
 
   <!-- ── Reviews List ─────────────────────────────────────── -->
   <div id="view-reviews" class="view">
+    <div class="reviews-toolbar-top">
+      <div class="review-search-wrap">
+        <input id="reviewSearch" class="review-search-input" type="search" placeholder="Search reviews by wine, producer, notes, flavors, date..." aria-label="Search my reviews">
+        <div class="review-search-hint" id="reviewSearchHint">Showing all reviews</div>
+      </div>
+      <div class="export-dropdown" id="toolsDropdown">
+        <button type="button" id="toolsDropdownBtn" class="export-dropdown-btn tools-icon-btn" aria-expanded="false" aria-label="Tools" title="Tools">
+          <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14.7 6.3a4 4 0 0 0 5 5L13 18l-4 1 1-4 6.7-6.7z"></path>
+            <path d="M16 5l3 3"></path>
+          </svg>
+        </button>
+        <div id="toolsDropdownMenu" class="export-dropdown-menu" hidden>
+          <button type="button" class="export-menu-item" data-tools-mode="all-reviews">Export All Reviews</button>
+          <button type="button" class="export-menu-item" data-tools-mode="ai-analyzer">Export AI Analyzer</button>
+        </div>
+      </div>
+    </div>
     <div class="sort-toolbar">
       <label class="sort-label" for="reviewSortSelect">Sort By</label>
       <select id="reviewSortSelect" class="sort-select" aria-label="Sort reviews by">
@@ -1500,34 +1566,7 @@
       </select>
       <button type="button" id="sortDirectionToggle" class="sort-direction-btn" aria-label="Toggle sort direction">↓</button>
     </div>
-    <div class="review-search-wrap">
-      <input id="reviewSearch" class="review-search-input" type="search" placeholder="Search reviews by wine, producer, notes, flavors, date..." aria-label="Search my reviews">
-      <div class="review-search-hint" id="reviewSearchHint">Showing all reviews</div>
-    </div>
     <div id="reviews-container"></div>
-    <div class="reviews-export" id="reviewsExportSection">
-      <div class="reviews-export-title">Export</div>
-      <div class="reviews-export-row">
-        <select id="reviewExportSelect" class="review-export-select" aria-label="Select a review to export"></select>
-        <div class="export-dropdown" id="exportDropdown">
-          <button type="button" id="exportDropdownBtn" class="export-dropdown-btn" aria-expanded="false">Export ▾</button>
-          <div id="exportDropdownMenu" class="export-dropdown-menu" hidden>
-            <button type="button" class="export-menu-item" data-export-mode="full">Export review</button>
-            <button type="button" class="export-menu-item" data-export-mode="ai">AI Guesser Export</button>
-          </div>
-        </div>
-      </div>
-      <div class="reviews-export-title">Tools</div>
-      <div class="reviews-tools-row">
-        <div class="export-dropdown" id="toolsDropdown">
-          <button type="button" id="toolsDropdownBtn" class="export-dropdown-btn" aria-expanded="false">Tools ▾</button>
-          <div id="toolsDropdownMenu" class="export-dropdown-menu" hidden>
-            <button type="button" class="export-menu-item" data-tools-mode="all-reviews">Export All Reviews</button>
-            <button type="button" class="export-menu-item" data-tools-mode="ai-analyzer">Export AI Analyzer</button>
-          </div>
-        </div>
-      </div>
-    </div>
   </div>
 
 </div><!-- /#app -->
@@ -2295,28 +2334,9 @@
     renderReviews();
   });
 
-  document.getElementById('exportDropdownBtn').addEventListener('click', () => {
-    const menu = document.getElementById('exportDropdownMenu');
-    if (!menu || menu.hidden) {
-      closeToolsMenu();
-      openExportMenu();
-    } else {
-      closeExportMenu();
-    }
-  });
-
-  document.getElementById('exportDropdownMenu').addEventListener('click', event => {
-    const option = event.target.closest('[data-export-mode]');
-    if (!option) return;
-    const mode = option.dataset.exportMode;
-    closeExportMenu();
-    exportSelectedReview(mode);
-  });
-
   document.getElementById('toolsDropdownBtn').addEventListener('click', () => {
     const menu = document.getElementById('toolsDropdownMenu');
     if (!menu || menu.hidden) {
-      closeExportMenu();
       openToolsMenu();
     } else {
       closeToolsMenu();
@@ -2332,12 +2352,10 @@
   });
 
   document.addEventListener('click', event => {
-    const exportDropdown = document.getElementById('exportDropdown');
     const toolsDropdown = document.getElementById('toolsDropdown');
-    if (!exportDropdown || !toolsDropdown) return;
-    const clickedInsideExport = exportDropdown.contains(event.target);
+    if (!toolsDropdown) return;
     const clickedInsideTools = toolsDropdown.contains(event.target);
-    if (!clickedInsideExport && !clickedInsideTools) closeAllMenus();
+    if (!clickedInsideTools) closeAllMenus();
   });
 
   document.addEventListener('keydown', event => {
@@ -2405,41 +2423,6 @@
       return;
     }
     hint.textContent = `Showing ${shownCount} of ${totalCount} review${totalCount === 1 ? '' : 's'}`;
-  }
-
-  function refreshReviewExportOptions() {
-    const select = document.getElementById('reviewExportSelect');
-    const exportBtn = document.getElementById('exportDropdownBtn');
-    if (!select || !exportBtn) return;
-
-    if (!reviews.length) {
-      select.innerHTML = '<option value="">No reviews available</option>';
-      select.disabled = true;
-      exportBtn.disabled = true;
-      closeExportMenu();
-      return;
-    }
-
-    const list = [...reviews].sort((a, b) => {
-      const ad = a.date || '';
-      const bd = b.date || '';
-      if (ad < bd) return 1;
-      if (ad > bd) return -1;
-      return 0;
-    });
-
-    const current = select.value;
-    select.innerHTML = list.map(r => {
-      const dateLabel = r.date ? formatDate(r.date) : 'No date';
-      const scoreLabel = `${r.total || 0}/100`;
-      const title = getReviewDisplayTitle(r);
-      return `<option value="${r.id}">${esc(title)} - ${esc(dateLabel)} - ${esc(scoreLabel)}</option>`;
-    }).join('');
-
-    const hasCurrent = list.some(r => String(r.id) === String(current));
-    select.value = hasCurrent ? current : String(list[0].id);
-    select.disabled = false;
-    exportBtn.disabled = false;
   }
 
   function refreshReviewToolsState() {
@@ -2529,8 +2512,6 @@
       `Flavor Characteristics: ${review.scores?.chars || 0} / 25`,
       `Balance: ${review.scores?.balance || 0} / 5`,
       `Length: ${review.scores?.length || 0} / 5`,
-      review.actual_price ? `Actual Price: $${Number(review.actual_price).toFixed(2)}` : null,
-      review.would_pay ? `Would Pay: $${Number(review.would_pay).toFixed(2)}` : null,
       review.scores?.wine_color ? `Wine Color: ${review.scores.wine_color}` : null,
       Array.isArray(review.scores?.selected_flavors) && review.scores.selected_flavors.length
         ? `Selected Flavors: ${review.scores.selected_flavors.join(', ')}`
@@ -2577,14 +2558,8 @@
     return parts.filter(line => line !== null).join('\n');
   }
 
-  function exportSelectedReview(mode) {
-    const select = document.getElementById('reviewExportSelect');
-    if (!select?.value) {
-      showToast('Select a review to export first');
-      return;
-    }
-
-    const review = reviews.find(r => String(r.id) === String(select.value));
+  function exportReviewById(id, mode) {
+    const review = reviews.find(r => String(r.id) === String(id));
     if (!review) {
       showToast('Selected review not found');
       return;
@@ -2596,22 +2571,6 @@
     const payload = mode === 'ai' ? buildAiGuesserExportText(review) : buildReviewExportText(review);
     downloadTextFile(filename, payload);
     showToast(mode === 'ai' ? 'AI Guesser export downloaded' : 'Review export downloaded');
-  }
-
-  function openExportMenu() {
-    const menu = document.getElementById('exportDropdownMenu');
-    const button = document.getElementById('exportDropdownBtn');
-    if (!menu || !button || button.disabled) return;
-    menu.hidden = false;
-    button.setAttribute('aria-expanded', 'true');
-  }
-
-  function closeExportMenu() {
-    const menu = document.getElementById('exportDropdownMenu');
-    const button = document.getElementById('exportDropdownBtn');
-    if (!menu || !button) return;
-    menu.hidden = true;
-    button.setAttribute('aria-expanded', 'false');
   }
 
   function openToolsMenu() {
@@ -2631,7 +2590,6 @@
   }
 
   function closeAllMenus() {
-    closeExportMenu();
     closeToolsMenu();
   }
 
@@ -2683,7 +2641,6 @@
     const filtered = getFilteredSortedReviews();
 
     refreshReviewSearchHint(reviews.length, filtered.length);
-    refreshReviewExportOptions();
     refreshReviewToolsState();
 
     if (!reviews.length) {
@@ -2777,6 +2734,13 @@
             ${wineColorHTML}
             ${notesHTML}
             <button class="edit-btn" onclick="editReview(${r.id})">Edit Review</button>
+            <details class="review-export-dropdown">
+              <summary class="review-export-btn">Export</summary>
+              <div class="review-export-menu">
+                <button class="export-menu-item" type="button" onclick="event.stopPropagation(); exportReviewById(${r.id}, 'full')">Export Review</button>
+                <button class="export-menu-item" type="button" onclick="event.stopPropagation(); exportReviewById(${r.id}, 'ai')">AI Guesser Export</button>
+              </div>
+            </details>
             <button class="delete-btn" onclick="deleteReview(${r.id})">Delete Review</button>
           </div>
         </div>`;
