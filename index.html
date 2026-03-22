@@ -256,6 +256,61 @@
       color: var(--text-muted);
     }
 
+    .flavor-controls {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .flavor-search {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      font-size: 14px;
+      font-family: inherit;
+      color: var(--text);
+      background: var(--cream);
+      transition: border-color 0.2s, background 0.2s;
+    }
+
+    .flavor-search:focus {
+      outline: none;
+      border-color: var(--wine);
+      background: white;
+    }
+
+    .flavor-action-btn {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 12px;
+      background: white;
+      color: var(--text);
+      font-size: 13px;
+      font-weight: 700;
+      font-family: inherit;
+      cursor: pointer;
+      touch-action: manipulation;
+      transition: background 0.15s, border-color 0.15s, color 0.15s;
+      white-space: nowrap;
+    }
+
+    .flavor-action-btn:active {
+      background: var(--cream);
+    }
+
+    .flavor-action-btn.warn {
+      border-color: rgba(217,64,64,0.35);
+      color: #b22f2f;
+    }
+
+    .flavor-action-btn.active {
+      border-color: var(--wine);
+      background: rgba(123,45,58,0.1);
+      color: var(--wine);
+    }
+
     .flavor-count {
       font-weight: 700;
       color: var(--wine);
@@ -309,6 +364,25 @@
       font-size: 12px;
       color: var(--text-muted);
       font-variant-numeric: tabular-nums;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .group-clear-btn {
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: white;
+      color: var(--text-muted);
+      padding: 3px 8px;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+
+    .group-clear-btn:active {
+      background: var(--cream);
     }
 
     .flavor-options {
@@ -357,6 +431,22 @@
       font-size: 12px;
       font-weight: 700;
       padding: 5px 10px;
+    }
+
+    .flavor-empty {
+      font-size: 13px;
+      color: var(--text-muted);
+      padding: 12px;
+      border: 1px dashed var(--border);
+      border-radius: 10px;
+      background: var(--cream);
+      text-align: center;
+    }
+
+    @media (max-width: 430px) {
+      .flavor-controls {
+        grid-template-columns: 1fr;
+      }
     }
 
     .field-row {
@@ -862,6 +952,11 @@
         <span>Selected flavor notes</span>
         <span id="selectedFlavorCount" class="flavor-count">0</span>
       </div>
+      <div class="flavor-controls">
+        <input id="flavorSearch" class="flavor-search" type="search" placeholder="Search flavors (e.g. cherry, pepper, oak)" aria-label="Search flavor notes">
+        <button type="button" id="selectedOnlyToggle" class="flavor-action-btn" aria-pressed="false">Selected only: off</button>
+        <button type="button" id="clearAllFlavors" class="flavor-action-btn warn">Clear all flavors</button>
+      </div>
       <div id="flavor-groups" class="flavor-groups"></div>
     </div>
 
@@ -889,6 +984,8 @@
   let currentUser = null;
   let reviews     = [];
   const selectedFlavors = new Set();
+  let flavorSearchTerm = '';
+  let flavorSelectedOnly = false;
 
   // ── Flavor options ───────────────────────────────────────────────
   const RedWineDarkFruit = [
@@ -1272,6 +1369,8 @@
   function resetForm() {
     Object.keys(scores).forEach(k => { scores[k] = 0; });
     selectedFlavors.clear();
+    flavorSearchTerm = '';
+    flavorSelectedOnly = false;
     refreshTotal();
 
     document.querySelectorAll('.stepper').forEach(el => {
@@ -1283,9 +1382,21 @@
      'actualPrice','wouldPay','tastingNotes']
       .forEach(id => document.getElementById(id).value = '');
 
+    const flavorSearch = document.getElementById('flavorSearch');
+    if (flavorSearch) flavorSearch.value = '';
+
+    refreshSelectedOnlyToggle();
     renderFlavorSelector();
     document.getElementById('reviewDate').value = todayISO();
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function refreshSelectedOnlyToggle() {
+    const toggle = document.getElementById('selectedOnlyToggle');
+    if (!toggle) return;
+    toggle.classList.toggle('active', flavorSelectedOnly);
+    toggle.setAttribute('aria-pressed', flavorSelectedOnly ? 'true' : 'false');
+    toggle.textContent = flavorSelectedOnly ? 'Selected only: on' : 'Selected only: off';
   }
 
   function renderFlavorSelector() {
@@ -1296,8 +1407,25 @@
 
     selectedCount.textContent = String(selectedFlavors.size);
 
-    groups.innerHTML = RedWineFlavorOptions.map((category, index) => {
-      const selectedInGroup = category.options.filter(o => selectedFlavors.has(o.value)).length;
+    const search = flavorSearchTerm.trim().toLowerCase();
+    const visibleCategories = RedWineFlavorOptions.map(category => {
+      const visibleOptions = category.options.filter(option => {
+        if (flavorSelectedOnly && !selectedFlavors.has(option.value)) return false;
+        if (!search) return true;
+        return option.label.toLowerCase().includes(search);
+      });
+      return { ...category, options: visibleOptions };
+    }).filter(category => category.options.length > 0);
+
+    if (!visibleCategories.length) {
+      groups.innerHTML = '<div class="flavor-empty">No flavor notes match your search.</div>';
+      return;
+    }
+
+    groups.innerHTML = visibleCategories.map((category, index) => {
+      const selectedInGroup = RedWineFlavorOptions
+        .find(group => group.label === category.label)
+        .options.filter(o => selectedFlavors.has(o.value)).length;
       const optionsHtml = category.options.map(option => {
         const selected = selectedFlavors.has(option.value) ? 'selected' : '';
         return `<button type="button" class="flavor-chip ${selected}" data-flavor="${esc(option.value)}">${esc(option.label)}</button>`;
@@ -1310,14 +1438,29 @@
               <span class="flavor-dot" style="background:${category.color};"></span>
               ${esc(category.label)}
             </span>
-            <span class="flavor-group-meta">${selectedInGroup} selected</span>
+            <span class="flavor-group-meta">${selectedInGroup} selected <button type="button" class="group-clear-btn" data-group-label="${esc(category.label)}">select none</button></span>
           </summary>
           <div class="flavor-options">${optionsHtml}</div>
         </details>`;
     }).join('');
   }
 
+  document.getElementById('flavor-groups').addEventListener('pointerdown', event => {
+    const clearBtn = event.target.closest('.group-clear-btn');
+    if (clearBtn) event.preventDefault();
+  });
+
   document.getElementById('flavor-groups').addEventListener('click', event => {
+    const clearBtn = event.target.closest('.group-clear-btn');
+    if (clearBtn) {
+      const label = clearBtn.dataset.groupLabel;
+      const group = RedWineFlavorOptions.find(category => category.label === label);
+      if (!group) return;
+      group.options.forEach(option => selectedFlavors.delete(option.value));
+      renderFlavorSelector();
+      return;
+    }
+
     const chip = event.target.closest('.flavor-chip');
     if (!chip) return;
 
@@ -1330,6 +1473,23 @@
       selectedFlavors.add(flavor);
     }
 
+    renderFlavorSelector();
+  });
+
+  document.getElementById('flavorSearch').addEventListener('input', event => {
+    flavorSearchTerm = event.target.value || '';
+    renderFlavorSelector();
+  });
+
+  document.getElementById('selectedOnlyToggle').addEventListener('click', () => {
+    flavorSelectedOnly = !flavorSelectedOnly;
+    refreshSelectedOnlyToggle();
+    renderFlavorSelector();
+  });
+
+  document.getElementById('clearAllFlavors').addEventListener('click', () => {
+    if (!selectedFlavors.size) return;
+    selectedFlavors.clear();
     renderFlavorSelector();
   });
 
@@ -1436,6 +1596,7 @@
 
   // ── Init ─────────────────────────────────────────────────────────
   document.getElementById('reviewDate').value = todayISO();
+  refreshSelectedOnlyToggle();
   renderFlavorSelector();
 </script>
 </body>
