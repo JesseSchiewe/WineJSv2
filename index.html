@@ -996,6 +996,11 @@
       align-items: center;
     }
 
+    .reviews-tools-row {
+      display: flex;
+      justify-content: flex-end;
+    }
+
     .review-export-select {
       border: 1px solid var(--border);
       border-radius: 10px;
@@ -1257,6 +1262,10 @@
         grid-template-columns: 1fr;
       }
 
+      .reviews-tools-row {
+        justify-content: stretch;
+      }
+
       .export-dropdown-btn {
         width: 100%;
       }
@@ -1505,6 +1514,16 @@
           <div id="exportDropdownMenu" class="export-dropdown-menu" hidden>
             <button type="button" class="export-menu-item" data-export-mode="full">Export review</button>
             <button type="button" class="export-menu-item" data-export-mode="ai">AI Guesser Export</button>
+          </div>
+        </div>
+      </div>
+      <div class="reviews-export-title">Tools</div>
+      <div class="reviews-tools-row">
+        <div class="export-dropdown" id="toolsDropdown">
+          <button type="button" id="toolsDropdownBtn" class="export-dropdown-btn" aria-expanded="false">Tools ▾</button>
+          <div id="toolsDropdownMenu" class="export-dropdown-menu" hidden>
+            <button type="button" class="export-menu-item" data-tools-mode="all-reviews">Export All Reviews</button>
+            <button type="button" class="export-menu-item" data-tools-mode="ai-analyzer">Export AI Analyzer</button>
           </div>
         </div>
       </div>
@@ -2279,6 +2298,7 @@
   document.getElementById('exportDropdownBtn').addEventListener('click', () => {
     const menu = document.getElementById('exportDropdownMenu');
     if (!menu || menu.hidden) {
+      closeToolsMenu();
       openExportMenu();
     } else {
       closeExportMenu();
@@ -2293,14 +2313,35 @@
     exportSelectedReview(mode);
   });
 
+  document.getElementById('toolsDropdownBtn').addEventListener('click', () => {
+    const menu = document.getElementById('toolsDropdownMenu');
+    if (!menu || menu.hidden) {
+      closeExportMenu();
+      openToolsMenu();
+    } else {
+      closeToolsMenu();
+    }
+  });
+
+  document.getElementById('toolsDropdownMenu').addEventListener('click', event => {
+    const option = event.target.closest('[data-tools-mode]');
+    if (!option) return;
+    const mode = option.dataset.toolsMode;
+    closeToolsMenu();
+    exportToolsData(mode);
+  });
+
   document.addEventListener('click', event => {
-    const dropdown = document.getElementById('exportDropdown');
-    if (!dropdown) return;
-    if (!dropdown.contains(event.target)) closeExportMenu();
+    const exportDropdown = document.getElementById('exportDropdown');
+    const toolsDropdown = document.getElementById('toolsDropdown');
+    if (!exportDropdown || !toolsDropdown) return;
+    const clickedInsideExport = exportDropdown.contains(event.target);
+    const clickedInsideTools = toolsDropdown.contains(event.target);
+    if (!clickedInsideExport && !clickedInsideTools) closeAllMenus();
   });
 
   document.addEventListener('keydown', event => {
-    if (event.key === 'Escape') closeExportMenu();
+    if (event.key === 'Escape') closeAllMenus();
   });
 
   // ── Sort ─────────────────────────────────────────────────────────
@@ -2401,6 +2442,13 @@
     exportBtn.disabled = false;
   }
 
+  function refreshReviewToolsState() {
+    const toolsBtn = document.getElementById('toolsDropdownBtn');
+    if (!toolsBtn) return;
+    toolsBtn.disabled = reviews.length === 0;
+    if (toolsBtn.disabled) closeToolsMenu();
+  }
+
   function sanitizeFilename(input) {
     return String(input || 'review')
       .toLowerCase()
@@ -2419,6 +2467,53 @@
     link.click();
     link.remove();
     URL.revokeObjectURL(href);
+  }
+
+  function getReviewsDateDesc() {
+    return [...reviews].sort((a, b) => {
+      const ad = a.date || '';
+      const bd = b.date || '';
+      if (ad < bd) return 1;
+      if (ad > bd) return -1;
+      return 0;
+    });
+  }
+
+  function formatAllReviewsLine(review) {
+    const producer = (review.producer || 'Unknown Producer').trim();
+    const wineName = (review.wine_name || 'Unknown Wine').trim();
+    const vintage = String(review.vintage || 'Unknown Vintage').trim();
+    const totalScore = Number(review.total) || 0;
+    return `${producer} ${wineName} ${vintage}: ${totalScore}`;
+  }
+
+  function buildAllReviewsExportText() {
+    const lines = getReviewsDateDesc().map(formatAllReviewsLine);
+    return lines.join('\n');
+  }
+
+  function buildAiAnalyzerExportText() {
+    const intro = 'Please analyze the following wine reviews and give me a summary including a categorization of my wine preferences, favorite and least favorite styles, and your top five wine recommendations that you think I would enjoy.';
+    const lines = getReviewsDateDesc().map(formatAllReviewsLine);
+    return `${intro}\n\n${lines.join('\n')}`;
+  }
+
+  function exportToolsData(mode) {
+    if (!reviews.length) {
+      showToast('No reviews to export');
+      return;
+    }
+
+    if (mode === 'all-reviews') {
+      downloadTextFile('all-reviews.txt', buildAllReviewsExportText());
+      showToast('All reviews export downloaded');
+      return;
+    }
+
+    if (mode === 'ai-analyzer') {
+      downloadTextFile('all-reviews-ai-analyzer.txt', buildAiAnalyzerExportText());
+      showToast('AI analyzer export downloaded');
+    }
   }
 
   function buildReviewExportText(review) {
@@ -2519,6 +2614,27 @@
     button.setAttribute('aria-expanded', 'false');
   }
 
+  function openToolsMenu() {
+    const menu = document.getElementById('toolsDropdownMenu');
+    const button = document.getElementById('toolsDropdownBtn');
+    if (!menu || !button || button.disabled) return;
+    menu.hidden = false;
+    button.setAttribute('aria-expanded', 'true');
+  }
+
+  function closeToolsMenu() {
+    const menu = document.getElementById('toolsDropdownMenu');
+    const button = document.getElementById('toolsDropdownBtn');
+    if (!menu || !button) return;
+    menu.hidden = true;
+    button.setAttribute('aria-expanded', 'false');
+  }
+
+  function closeAllMenus() {
+    closeExportMenu();
+    closeToolsMenu();
+  }
+
   function getSortValue(r, key) {
     switch (key) {
       case 'total':       return r.total || 0;
@@ -2568,6 +2684,7 @@
 
     refreshReviewSearchHint(reviews.length, filtered.length);
     refreshReviewExportOptions();
+    refreshReviewToolsState();
 
     if (!reviews.length) {
       container.innerHTML = `
