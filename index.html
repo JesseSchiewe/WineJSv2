@@ -839,7 +839,7 @@
       display: flex;
       align-items: center;
       gap: 8px;
-      margin-bottom: 14px;
+      margin-bottom: 10px;
       flex-wrap: wrap;
     }
 
@@ -852,42 +852,40 @@
       flex-shrink: 0;
     }
 
-    .sort-pills {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
+    .sort-select {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 8px 10px;
+      font-size: 13px;
+      font-family: inherit;
+      color: var(--text);
+      background: white;
+      min-width: 210px;
       flex: 1;
     }
 
-    .sort-pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-      border: 1px solid var(--border);
-      border-radius: 999px;
-      padding: 5px 12px;
-      font-size: 12px;
-      font-weight: 600;
-      font-family: inherit;
-      background: white;
-      color: var(--text-muted);
-      cursor: pointer;
-      transition: border-color 0.15s, background 0.15s, color 0.15s;
-      touch-action: manipulation;
-      white-space: nowrap;
-    }
-
-    .sort-pill:active { background: var(--cream); }
-
-    .sort-pill.active {
+    .sort-select:focus {
+      outline: none;
       border-color: var(--wine);
-      background: rgba(123,45,58,0.08);
-      color: var(--wine);
     }
 
-    .sort-arrow {
-      font-size: 10px;
-      line-height: 1;
+    .sort-direction-btn {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 8px 12px;
+      background: white;
+      color: var(--wine);
+      font-size: 14px;
+      font-weight: 700;
+      font-family: inherit;
+      cursor: pointer;
+      min-width: 42px;
+      transition: border-color 0.15s, background 0.15s;
+      touch-action: manipulation;
+    }
+
+    .sort-direction-btn:active {
+      background: var(--cream);
     }
 
     .reviews-empty {
@@ -903,39 +901,54 @@
     .review-card {
       background: var(--card);
       border-radius: var(--radius);
-      margin-bottom: 12px;
+      margin-bottom: 8px;
       box-shadow: var(--shadow);
       overflow: hidden;
     }
 
     .review-card-header {
-      padding: 16px 18px;
+      padding: 11px 12px;
       display: flex;
       align-items: flex-start;
       justify-content: space-between;
       cursor: pointer;
-      gap: 12px;
+      gap: 10px;
+    }
+
+    .review-sort-focus {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-bottom: 2px;
+      font-weight: 600;
+    }
+
+    .review-sort-focus strong {
+      color: var(--wine);
+      font-weight: 700;
     }
 
     .review-wine-name {
-      font-size: 16px;
+      font-size: 14px;
       font-weight: 700;
       color: var(--text);
-      line-height: 1.3;
+      line-height: 1.25;
     }
 
     .review-meta {
-      font-size: 13px;
+      font-size: 11px;
       color: var(--text-muted);
-      margin-top: 3px;
+      margin-top: 2px;
     }
 
     .score-badge {
       background: var(--wine);
       color: white;
       border-radius: 20px;
-      padding: 5px 13px;
-      font-size: 15px;
+      padding: 3px 10px;
+      font-size: 12px;
       font-weight: 700;
       white-space: nowrap;
       flex-shrink: 0;
@@ -944,7 +957,7 @@
     .review-detail {
       display: none;
       border-top: 1px solid var(--border);
-      padding: 16px 18px;
+      padding: 12px;
     }
 
     .review-detail.open { display: block; }
@@ -1268,20 +1281,21 @@
   <!-- ── Reviews List ─────────────────────────────────────── -->
   <div id="view-reviews" class="view">
     <div class="sort-toolbar">
-      <span class="sort-label">Sort</span>
-      <div class="sort-pills">
-        <button class="sort-pill active" onclick="setSort('total')"      data-sort="total">Overall Score</button>
-        <button class="sort-pill"        onclick="setSort('chars')"      data-sort="chars">Flavor Chars.</button>
-        <button class="sort-pill"        onclick="setSort('nose')"       data-sort="nose">Nose</button>
-        <button class="sort-pill"        onclick="setSort('flavor')"     data-sort="flavor">Flavor Intensity</button>
-        <button class="sort-pill"        onclick="setSort('balance')"    data-sort="balance">Balance</button>
-        <button class="sort-pill"        onclick="setSort('length')"     data-sort="length">Length</button>
-        <button class="sort-pill"        onclick="setSort('date')"       data-sort="date">Review Date</button>
-        <button class="sort-pill"        onclick="setSort('vintage')"    data-sort="vintage">Vintage</button>
-        <button class="sort-pill"        onclick="setSort('actual_price')" data-sort="actual_price">Actual Price</button>
-        <button class="sort-pill"        onclick="setSort('would_pay')"  data-sort="would_pay">Would Pay</button>
-        <button class="sort-pill"        onclick="setSort('best_value')" data-sort="best_value">Best Value</button>
-      </div>
+      <label class="sort-label" for="reviewSortSelect">Sort By</label>
+      <select id="reviewSortSelect" class="sort-select" aria-label="Sort reviews by">
+        <option value="total">Overall Score</option>
+        <option value="chars">Flavor Characteristics</option>
+        <option value="nose">Nose Intensity</option>
+        <option value="flavor">Flavor Intensity</option>
+        <option value="balance">Balance</option>
+        <option value="length">Length</option>
+        <option value="date">Review Date</option>
+        <option value="vintage">Vintage</option>
+        <option value="actual_price">Actual Price</option>
+        <option value="would_pay">Would Pay</option>
+        <option value="best_value">Best Value</option>
+      </select>
+      <button type="button" id="sortDirectionToggle" class="sort-direction-btn" aria-label="Toggle sort direction">↓</button>
     </div>
     <div id="reviews-container"></div>
   </div>
@@ -1311,6 +1325,20 @@
   let authActionInFlight = false;
   let sortKey = 'total';
   let sortDir = -1; // -1 = descending, 1 = ascending
+
+  const sortLabels = {
+    total: 'Overall Score',
+    chars: 'Flavor Characteristics',
+    nose: 'Nose Intensity',
+    flavor: 'Flavor Intensity',
+    balance: 'Balance',
+    length: 'Length',
+    date: 'Review Date',
+    vintage: 'Vintage',
+    actual_price: 'Actual Price',
+    would_pay: 'Would Pay',
+    best_value: 'Best Value'
+  };
 
   const WineColorOptions = [
     { value: 'Pale Straw', color: '#efe8c6' },
@@ -2021,30 +2049,32 @@
     renderWineColorSelector();
   });
 
+  document.getElementById('reviewSortSelect').addEventListener('change', event => {
+    setSort(event.target.value);
+  });
+
+  document.getElementById('sortDirectionToggle').addEventListener('click', () => {
+    sortDir *= -1;
+    refreshSortControls();
+    renderReviews();
+  });
+
   // ── Sort ─────────────────────────────────────────────────────────
-  function setSort(key) {
-    if (sortKey === key) {
-      sortDir *= -1;
-    } else {
-      sortKey = key;
-      // Numeric/date fields default descending (highest first);
-      // String fields (vintage) default ascending.
-      sortDir = key === 'vintage' ? 1 : -1;
+  function refreshSortControls() {
+    const select = document.getElementById('reviewSortSelect');
+    const toggle = document.getElementById('sortDirectionToggle');
+    if (select) select.value = sortKey;
+    if (toggle) {
+      toggle.textContent = sortDir === -1 ? '↓' : '↑';
+      toggle.title = sortDir === -1 ? 'Highest to lowest' : 'Lowest to highest';
     }
+  }
 
-    document.querySelectorAll('.sort-pill').forEach(btn => {
-      const isActive = btn.dataset.sort === sortKey;
-      btn.classList.toggle('active', isActive);
-      const arrow = btn.querySelector('.sort-arrow');
-      if (arrow) btn.removeChild(arrow);
-      if (isActive) {
-        const arrowEl = document.createElement('span');
-        arrowEl.className = 'sort-arrow';
-        arrowEl.textContent = sortDir === -1 ? '↓' : '↑';
-        btn.appendChild(arrowEl);
-      }
-    });
-
+  function setSort(key) {
+    sortKey = key;
+    // Default to descending so highest values start first.
+    sortDir = -1;
+    refreshSortControls();
     renderReviews();
   }
 
@@ -2070,6 +2100,26 @@
     }
   }
 
+  function getSortDisplay(r, key) {
+    switch (key) {
+      case 'total': return `${r.total || 0} / 100`;
+      case 'chars': return `${r.scores?.chars || 0} / 25`;
+      case 'nose': return `${r.scores?.nose || 0} / 5`;
+      case 'flavor': return `${r.scores?.flavor || 0} / 10`;
+      case 'balance': return `${r.scores?.balance || 0} / 5`;
+      case 'length': return `${r.scores?.length || 0} / 5`;
+      case 'date': return r.date ? formatDate(r.date) : 'No date';
+      case 'vintage': return r.vintage || 'No vintage';
+      case 'actual_price': return r.actual_price ? `$${Number(r.actual_price).toFixed(2)}` : 'No price';
+      case 'would_pay': return r.would_pay ? `$${Number(r.would_pay).toFixed(2)}` : 'No value';
+      case 'best_value': {
+        const ratio = getSortValue(r, 'best_value');
+        return ratio > 0 ? `${Math.round(ratio * 100)}%` : 'No value data';
+      }
+      default: return `${r.total || 0} / 100`;
+    }
+  }
+
   // ── Render reviews ───────────────────────────────────────────────
   function renderReviews() {
     const container = document.getElementById('reviews-container');
@@ -2087,15 +2137,23 @@
     const sorted = [...reviews].sort((a, b) => {
       const av = getSortValue(a, sortKey);
       const bv = getSortValue(b, sortKey);
-      if (av < bv) return sortDir;
-      if (av > bv) return -sortDir;
+      if (av < bv) return -sortDir;
+      if (av > bv) return sortDir;
       return 0;
     });
 
     container.innerHTML = sorted.map(r => {
-      const titleParts = [r.producer, r.wine_name, r.vintage].filter(Boolean).map(esc);
-      const title = titleParts.length ? titleParts.join(' ') : 'Unnamed Wine';
-      const metaParts = [r.date && formatDate(r.date)].filter(Boolean);
+      const baseTitle = [r.producer, r.wine_name, r.vintage].filter(Boolean).map(esc).join(' ');
+      const title = sortKey === 'vintage' && r.vintage
+        ? [esc(r.vintage), [r.producer, r.wine_name].filter(Boolean).map(esc).join(' ')].filter(Boolean).join(' ')
+        : (baseTitle || 'Unnamed Wine');
+
+      const metaParts = [];
+      if (sortKey !== 'total') metaParts.push(`Score ${r.total || 0} / 100`);
+      if (r.date) metaParts.push(formatDate(r.date));
+
+      const sortFocusLabel = sortLabels[sortKey] || 'Sort';
+      const sortFocusValue = getSortDisplay(r, sortKey);
 
       const detailItems = [
         r.appellation  && { label: 'Appellation',  value: esc(r.appellation) },
@@ -2134,10 +2192,11 @@
         <div class="review-card">
           <div class="review-card-header" onclick="toggleDetail(${r.id})">
             <div>
+              <div class="review-sort-focus">${esc(sortFocusLabel)}: <strong>${esc(sortFocusValue)}</strong></div>
               <div class="review-wine-name">${title}</div>
               <div class="review-meta">${metaParts.join(' · ')}</div>
             </div>
-            <div class="score-badge">${r.total} / 100</div>
+            <div class="score-badge">${esc(sortFocusValue)}</div>
           </div>
           <div class="review-detail" id="detail-${r.id}">
             ${gridHTML}
@@ -2196,6 +2255,7 @@
   document.getElementById('reviewDate').value = todayISO();
   renderWineColorSelector();
   refreshSelectedOnlyToggle();
+  refreshSortControls();
   renderFlavorSelector();
 </script>
 </body>
