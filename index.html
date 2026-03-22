@@ -6,6 +6,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>WineJesse</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%237B2D3A'/%3E%3Ctext x='32' y='42' text-anchor='middle' font-size='34' font-family='Segoe UI,Arial,sans-serif' fill='white'%3EW%3C/text%3E%3C/svg%3E">
   <style>
     :root {
       --wine:        #7B2D3A;
@@ -466,9 +467,13 @@
 
     .flavor-controls {
       display: grid;
-      grid-template-columns: 1fr auto;
+      grid-template-columns: 1fr 1fr;
       gap: 10px;
       margin-bottom: 12px;
+    }
+
+    .flavor-controls .flavor-search {
+      grid-column: 1 / -1;
     }
 
     .flavor-search {
@@ -502,6 +507,7 @@
       touch-action: manipulation;
       transition: background 0.15s, border-color 0.15s, color 0.15s;
       white-space: nowrap;
+      width: 100%;
     }
 
     .flavor-action-btn:active {
@@ -603,7 +609,7 @@
     }
 
     .flavor-chip {
-      border: 1px solid var(--border);
+      border: 1px solid var(--chip-color, var(--border));
       background: var(--cream);
       color: var(--text);
       border-radius: 999px;
@@ -618,9 +624,9 @@
     .flavor-chip:active { transform: scale(0.97); }
 
     .flavor-chip.selected {
-      background: rgba(123,45,58,0.1);
-      border-color: var(--wine);
-      color: var(--wine);
+      background: color-mix(in srgb, var(--chip-color, var(--wine)) 14%, white);
+      border-color: var(--chip-color, var(--wine));
+      color: var(--chip-color, var(--wine));
       font-weight: 700;
     }
 
@@ -655,10 +661,58 @@
       .wine-color-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
       }
+    }
 
-      .flavor-controls {
-        grid-template-columns: 1fr;
-      }
+    /* More compact spacing for New Review screen */
+    #view-form {
+      padding: 14px;
+    }
+
+    #view-form .card {
+      padding: 14px;
+      margin-bottom: 10px;
+    }
+
+    #view-form .section-title {
+      margin-bottom: 12px;
+    }
+
+    #view-form .field {
+      margin-bottom: 10px;
+    }
+
+    #view-form .field input,
+    #view-form .field textarea {
+      padding: 10px 12px;
+    }
+
+    #view-form .score-row {
+      padding: 10px 0;
+    }
+
+    #view-form .stepper-btn {
+      width: 38px;
+      height: 38px;
+      font-size: 22px;
+    }
+
+    #view-form .stepper-value {
+      min-width: 38px;
+      font-size: 24px;
+    }
+
+    #view-form .total-card {
+      padding: 14px 16px;
+      margin-bottom: 10px;
+    }
+
+    #view-form .total-number {
+      font-size: 34px;
+    }
+
+    #view-form .save-btn {
+      padding: 13px;
+      margin-bottom: calc(20px + env(safe-area-inset-bottom));
     }
 
     .field-row {
@@ -1291,7 +1345,7 @@
       <div class="score-row">
         <div class="score-label">
           <div class="name">Nose Intensity</div>
-          <div class="range">0 – 5 points</div>
+          <div class="range">out of 5</div>
         </div>
         <div class="stepper" data-key="nose" data-max="5">
           <button class="stepper-btn" data-action="dec">−</button>
@@ -1303,7 +1357,7 @@
       <div class="score-row">
         <div class="score-label">
           <div class="name">Flavor Intensity</div>
-          <div class="range">0 – 10 points</div>
+          <div class="range">out of 10</div>
         </div>
         <div class="stepper" data-key="flavor" data-max="10">
           <button class="stepper-btn" data-action="dec">−</button>
@@ -1315,7 +1369,7 @@
       <div class="score-row">
         <div class="score-label">
           <div class="name">Flavor Characteristics</div>
-          <div class="range">0 – 25 points</div>
+          <div class="range">out of 25</div>
         </div>
         <div class="stepper" data-key="chars" data-max="25">
           <button class="stepper-btn" data-action="dec">−</button>
@@ -1327,7 +1381,7 @@
       <div class="score-row">
         <div class="score-label">
           <div class="name">Balance</div>
-          <div class="range">0 – 5 points</div>
+          <div class="range">out of 5</div>
         </div>
         <div class="stepper" data-key="balance" data-max="5">
           <button class="stepper-btn" data-action="dec">−</button>
@@ -1339,7 +1393,7 @@
       <div class="score-row">
         <div class="score-label">
           <div class="name">Length</div>
-          <div class="range">0 – 5 points</div>
+          <div class="range">out of 5</div>
         </div>
         <div class="stepper" data-key="length" data-max="5">
           <button class="stepper-btn" data-action="dec">−</button>
@@ -2114,7 +2168,7 @@
       const selectedInGroup = allOptionsInGroup.filter(o => selectedFlavors.has(o.value)).length;
       const optionsHtml = category.options.map(option => {
         const selected = selectedFlavors.has(option.value) ? 'selected' : '';
-        return `<button type="button" class="flavor-chip ${selected}" data-flavor="${esc(option.value)}">${esc(option.label)}</button>`;
+        return `<button type="button" class="flavor-chip ${selected}" style="--chip-color:${category.color};" data-flavor="${esc(option.value)}">${esc(option.label)}</button>`;
       }).join('');
       const isOpen = openFlavorGroups.has(category.label);
 
@@ -2125,7 +2179,7 @@
               <span class="flavor-dot" style="background:${category.color};"></span>
               ${esc(category.label)}
             </span>
-            <span class="flavor-group-meta">${selectedInGroup} selected <button type="button" class="group-clear-btn" data-group-label="${esc(category.label)}">select none</button></span>
+            <span class="flavor-group-meta">${selectedInGroup} selected <button type="button" class="group-clear-btn" data-group-label="${esc(category.label)}">clear</button></span>
           </summary>
           <div class="flavor-options">${optionsHtml}</div>
         </details>`;
