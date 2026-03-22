@@ -888,6 +888,136 @@
       background: var(--cream);
     }
 
+    .review-search-wrap {
+      margin-bottom: 12px;
+    }
+
+    .review-search-input {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      font-size: 14px;
+      font-family: inherit;
+      color: var(--text);
+      background: white;
+      transition: border-color 0.2s, background 0.2s;
+    }
+
+    .review-search-input:focus {
+      outline: none;
+      border-color: var(--wine);
+      background: var(--cream);
+    }
+
+    .review-search-hint {
+      margin-top: 6px;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .reviews-export {
+      margin-top: 14px;
+      background: var(--card);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 14px 12px;
+      display: grid;
+      gap: 10px;
+      margin-bottom: calc(20px + env(safe-area-inset-bottom));
+    }
+
+    .reviews-export-title {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.9px;
+      color: var(--wine);
+    }
+
+    .reviews-export-row {
+      display: grid;
+      gap: 8px;
+      grid-template-columns: 1fr auto;
+      align-items: center;
+    }
+
+    .review-export-select {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 11px;
+      font-size: 13px;
+      font-family: inherit;
+      color: var(--text);
+      background: white;
+      min-width: 0;
+    }
+
+    .review-export-select:focus {
+      outline: none;
+      border-color: var(--wine);
+    }
+
+    .export-dropdown {
+      position: relative;
+    }
+
+    .export-dropdown-btn {
+      border: 1px solid var(--wine);
+      border-radius: 10px;
+      padding: 10px 12px;
+      background: white;
+      color: var(--wine);
+      font-size: 13px;
+      font-weight: 700;
+      font-family: inherit;
+      cursor: pointer;
+      touch-action: manipulation;
+      min-width: 92px;
+      transition: background 0.15s, color 0.15s;
+    }
+
+    .export-dropdown-btn:active {
+      background: var(--wine);
+      color: white;
+    }
+
+    .export-dropdown-btn:disabled {
+      opacity: 0.45;
+      cursor: default;
+    }
+
+    .export-dropdown-menu {
+      position: absolute;
+      right: 0;
+      top: calc(100% + 6px);
+      min-width: 210px;
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+      padding: 5px;
+      z-index: 20;
+    }
+
+    .export-menu-item {
+      width: 100%;
+      text-align: left;
+      border: none;
+      background: transparent;
+      border-radius: 8px;
+      padding: 9px 10px;
+      font-size: 13px;
+      font-family: inherit;
+      color: var(--text);
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+
+    .export-menu-item:active {
+      background: var(--cream);
+    }
+
     .reviews-empty {
       text-align: center;
       padding: 64px 20px;
@@ -1066,6 +1196,16 @@
 
     @media (min-width: 640px) {
       .detail-grid { grid-template-columns: repeat(3, 1fr); }
+    }
+
+    @media (max-width: 430px) {
+      .reviews-export-row {
+        grid-template-columns: 1fr;
+      }
+
+      .export-dropdown-btn {
+        width: 100%;
+      }
     }
   </style>
 </head>
@@ -1297,7 +1437,24 @@
       </select>
       <button type="button" id="sortDirectionToggle" class="sort-direction-btn" aria-label="Toggle sort direction">↓</button>
     </div>
+    <div class="review-search-wrap">
+      <input id="reviewSearch" class="review-search-input" type="search" placeholder="Search reviews by wine, producer, notes, flavors, date..." aria-label="Search my reviews">
+      <div class="review-search-hint" id="reviewSearchHint">Showing all reviews</div>
+    </div>
     <div id="reviews-container"></div>
+    <div class="reviews-export" id="reviewsExportSection">
+      <div class="reviews-export-title">Export</div>
+      <div class="reviews-export-row">
+        <select id="reviewExportSelect" class="review-export-select" aria-label="Select a review to export"></select>
+        <div class="export-dropdown" id="exportDropdown">
+          <button type="button" id="exportDropdownBtn" class="export-dropdown-btn" aria-expanded="false">Export ▾</button>
+          <div id="exportDropdownMenu" class="export-dropdown-menu" hidden>
+            <button type="button" class="export-menu-item" data-export-mode="full">Export review</button>
+            <button type="button" class="export-menu-item" data-export-mode="ai">AI Guesser Export</button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
 </div><!-- /#app -->
@@ -1325,6 +1482,7 @@
   let authActionInFlight = false;
   let sortKey = 'total';
   let sortDir = -1; // -1 = descending, 1 = ascending
+  let reviewSearchTerm = '';
 
   const sortLabels = {
     total: 'Overall Score',
@@ -2053,10 +2211,42 @@
     setSort(event.target.value);
   });
 
+  document.getElementById('reviewSearch').addEventListener('input', event => {
+    reviewSearchTerm = event.target.value || '';
+    renderReviews();
+  });
+
   document.getElementById('sortDirectionToggle').addEventListener('click', () => {
     sortDir *= -1;
     refreshSortControls();
     renderReviews();
+  });
+
+  document.getElementById('exportDropdownBtn').addEventListener('click', () => {
+    const menu = document.getElementById('exportDropdownMenu');
+    if (!menu || menu.hidden) {
+      openExportMenu();
+    } else {
+      closeExportMenu();
+    }
+  });
+
+  document.getElementById('exportDropdownMenu').addEventListener('click', event => {
+    const option = event.target.closest('[data-export-mode]');
+    if (!option) return;
+    const mode = option.dataset.exportMode;
+    closeExportMenu();
+    exportSelectedReview(mode);
+  });
+
+  document.addEventListener('click', event => {
+    const dropdown = document.getElementById('exportDropdown');
+    if (!dropdown) return;
+    if (!dropdown.contains(event.target)) closeExportMenu();
+  });
+
+  document.addEventListener('keydown', event => {
+    if (event.key === 'Escape') closeExportMenu();
   });
 
   // ── Sort ─────────────────────────────────────────────────────────
@@ -2076,6 +2266,203 @@
     sortDir = -1;
     refreshSortControls();
     renderReviews();
+  }
+
+  function getFilteredSortedReviews() {
+    const query = reviewSearchTerm.trim().toLowerCase();
+    const filtered = !query ? [...reviews] : reviews.filter(r => {
+      const flavors = Array.isArray(r.scores?.selected_flavors) ? r.scores.selected_flavors.join(' ') : '';
+      const searchable = [
+        r.producer,
+        r.wine_name,
+        r.appellation,
+        r.vintage,
+        r.date,
+        r.tasting_notes,
+        r.scores?.wine_color,
+        flavors,
+        r.total
+      ]
+        .filter(Boolean)
+        .join(' ')
+        .toLowerCase();
+      return searchable.includes(query);
+    });
+
+    return filtered.sort((a, b) => {
+      const av = getSortValue(a, sortKey);
+      const bv = getSortValue(b, sortKey);
+      if (av < bv) return -sortDir;
+      if (av > bv) return sortDir;
+      return 0;
+    });
+  }
+
+  function getReviewDisplayTitle(r) {
+    return [r.producer, r.wine_name, r.vintage].filter(Boolean).join(' ') || 'Unnamed Wine';
+  }
+
+  function refreshReviewSearchHint(totalCount, shownCount) {
+    const hint = document.getElementById('reviewSearchHint');
+    if (!hint) return;
+    if (!reviewSearchTerm.trim()) {
+      hint.textContent = totalCount === 1 ? 'Showing 1 review' : `Showing all ${totalCount} reviews`;
+      return;
+    }
+    hint.textContent = `Showing ${shownCount} of ${totalCount} review${totalCount === 1 ? '' : 's'}`;
+  }
+
+  function refreshReviewExportOptions() {
+    const select = document.getElementById('reviewExportSelect');
+    const exportBtn = document.getElementById('exportDropdownBtn');
+    if (!select || !exportBtn) return;
+
+    if (!reviews.length) {
+      select.innerHTML = '<option value="">No reviews available</option>';
+      select.disabled = true;
+      exportBtn.disabled = true;
+      closeExportMenu();
+      return;
+    }
+
+    const list = [...reviews].sort((a, b) => {
+      const ad = a.date || '';
+      const bd = b.date || '';
+      if (ad < bd) return 1;
+      if (ad > bd) return -1;
+      return 0;
+    });
+
+    const current = select.value;
+    select.innerHTML = list.map(r => {
+      const dateLabel = r.date ? formatDate(r.date) : 'No date';
+      const scoreLabel = `${r.total || 0}/100`;
+      const title = getReviewDisplayTitle(r);
+      return `<option value="${r.id}">${esc(title)} - ${esc(dateLabel)} - ${esc(scoreLabel)}</option>`;
+    }).join('');
+
+    const hasCurrent = list.some(r => String(r.id) === String(current));
+    select.value = hasCurrent ? current : String(list[0].id);
+    select.disabled = false;
+    exportBtn.disabled = false;
+  }
+
+  function sanitizeFilename(input) {
+    return String(input || 'review')
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .slice(0, 80) || 'review';
+  }
+
+  function downloadTextFile(filename, text) {
+    const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+    const href = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = href;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(href);
+  }
+
+  function buildReviewExportText(review) {
+    const parts = [
+      review.wine_name || 'Unknown Wine',
+      `Producer: ${review.producer || 'Unknown'}`,
+      `Vintage: ${review.vintage || 'Unknown'}`,
+      review.appellation ? `Appellation: ${review.appellation}` : null,
+      review.date ? `Date Tasted: ${formatDate(review.date)}` : null,
+      `Total Score: ${review.total || 0} / 100`,
+      `Nose Intensity: ${review.scores?.nose || 0} / 5`,
+      `Flavor Intensity: ${review.scores?.flavor || 0} / 10`,
+      `Flavor Characteristics: ${review.scores?.chars || 0} / 25`,
+      `Balance: ${review.scores?.balance || 0} / 5`,
+      `Length: ${review.scores?.length || 0} / 5`,
+      review.actual_price ? `Actual Price: $${Number(review.actual_price).toFixed(2)}` : null,
+      review.would_pay ? `Would Pay: $${Number(review.would_pay).toFixed(2)}` : null,
+      review.scores?.wine_color ? `Wine Color: ${review.scores.wine_color}` : null,
+      Array.isArray(review.scores?.selected_flavors) && review.scores.selected_flavors.length
+        ? `Selected Flavors: ${review.scores.selected_flavors.join(', ')}`
+        : null,
+      '',
+      'Tasting Notes:',
+      review.tasting_notes || 'None'
+    ];
+
+    return parts.filter(line => line !== null).join('\n');
+  }
+
+  function buildAiGuesserExportText(review) {
+    const parts = [
+      'Please guess the wine based on these tasting notes.',
+      'Give an expert summary of the wine along with your best estimate about the grape/blend, the country, the region, the quality level, and the vintage.',
+      'Attempt to guess the specific wine and then give your reasoning of why you made your choices.',
+      '',
+      'Blind Tasting Data:',
+      review.appellation ? `Appellation: ${review.appellation}` : null,
+      review.date ? `Date Tasted: ${formatDate(review.date)}` : null,
+      `Total Score: ${review.total || 0} / 100`,
+      `Nose Intensity: ${review.scores?.nose || 0} / 5`,
+      `Flavor Intensity: ${review.scores?.flavor || 0} / 10`,
+      `Flavor Characteristics: ${review.scores?.chars || 0} / 25`,
+      `Balance: ${review.scores?.balance || 0} / 5`,
+      `Length: ${review.scores?.length || 0} / 5`,
+      review.actual_price ? `Actual Price: $${Number(review.actual_price).toFixed(2)}` : null,
+      review.would_pay ? `Would Pay: $${Number(review.would_pay).toFixed(2)}` : null,
+      review.scores?.wine_color ? `Wine Color: ${review.scores.wine_color}` : null,
+      Array.isArray(review.scores?.selected_flavors) && review.scores.selected_flavors.length
+        ? `Selected Flavors: ${review.scores.selected_flavors.join(', ')}`
+        : null,
+      '',
+      'Tasting Notes:',
+      review.tasting_notes || 'None',
+      '',
+      'Wine Information (for reveal after your guess):',
+      `Producer: ${review.producer || 'Unknown'}`,
+      `Wine Name: ${review.wine_name || 'Unknown'}`,
+      `Vintage: ${review.vintage || 'Unknown'}`
+    ];
+
+    return parts.filter(line => line !== null).join('\n');
+  }
+
+  function exportSelectedReview(mode) {
+    const select = document.getElementById('reviewExportSelect');
+    if (!select?.value) {
+      showToast('Select a review to export first');
+      return;
+    }
+
+    const review = reviews.find(r => String(r.id) === String(select.value));
+    if (!review) {
+      showToast('Selected review not found');
+      return;
+    }
+
+    const baseName = sanitizeFilename(getReviewDisplayTitle(review));
+    const suffix = mode === 'ai' ? 'ai-guesser' : 'review';
+    const filename = `${baseName}-${suffix}.txt`;
+    const payload = mode === 'ai' ? buildAiGuesserExportText(review) : buildReviewExportText(review);
+    downloadTextFile(filename, payload);
+    showToast(mode === 'ai' ? 'AI Guesser export downloaded' : 'Review export downloaded');
+  }
+
+  function openExportMenu() {
+    const menu = document.getElementById('exportDropdownMenu');
+    const button = document.getElementById('exportDropdownBtn');
+    if (!menu || !button || button.disabled) return;
+    menu.hidden = false;
+    button.setAttribute('aria-expanded', 'true');
+  }
+
+  function closeExportMenu() {
+    const menu = document.getElementById('exportDropdownMenu');
+    const button = document.getElementById('exportDropdownBtn');
+    if (!menu || !button) return;
+    menu.hidden = true;
+    button.setAttribute('aria-expanded', 'false');
   }
 
   function getSortValue(r, key) {
@@ -2123,6 +2510,10 @@
   // ── Render reviews ───────────────────────────────────────────────
   function renderReviews() {
     const container = document.getElementById('reviews-container');
+    const filtered = getFilteredSortedReviews();
+
+    refreshReviewSearchHint(reviews.length, filtered.length);
+    refreshReviewExportOptions();
 
     if (!reviews.length) {
       container.innerHTML = `
@@ -2134,13 +2525,17 @@
       return;
     }
 
-    const sorted = [...reviews].sort((a, b) => {
-      const av = getSortValue(a, sortKey);
-      const bv = getSortValue(b, sortKey);
-      if (av < bv) return -sortDir;
-      if (av > bv) return sortDir;
-      return 0;
-    });
+    if (!filtered.length) {
+      container.innerHTML = `
+        <div class="reviews-empty">
+          <div class="empty-icon">🔎</div>
+          <div class="empty-title">No matching reviews</div>
+          <div class="empty-sub">Try a different search term.</div>
+        </div>`;
+      return;
+    }
+
+    const sorted = filtered;
 
     container.innerHTML = sorted.map(r => {
       const baseTitle = [r.producer, r.wine_name, r.vintage].filter(Boolean).map(esc).join(' ');
