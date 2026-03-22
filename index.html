@@ -834,6 +834,62 @@
     .toast.show { transform: translateX(-50%) translateY(0); }
 
     /* ── Reviews list ───────────────────────────────────────── */
+    /* ── Sort toolbar ───────────────────────────────────────── */
+    .sort-toolbar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+    }
+
+    .sort-label {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text-muted);
+      flex-shrink: 0;
+    }
+
+    .sort-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      flex: 1;
+    }
+
+    .sort-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 5px 12px;
+      font-size: 12px;
+      font-weight: 600;
+      font-family: inherit;
+      background: white;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.15s, color 0.15s;
+      touch-action: manipulation;
+      white-space: nowrap;
+    }
+
+    .sort-pill:active { background: var(--cream); }
+
+    .sort-pill.active {
+      border-color: var(--wine);
+      background: rgba(123,45,58,0.08);
+      color: var(--wine);
+    }
+
+    .sort-arrow {
+      font-size: 10px;
+      line-height: 1;
+    }
+
     .reviews-empty {
       text-align: center;
       padding: 64px 20px;
@@ -1211,6 +1267,21 @@
 
   <!-- ── Reviews List ─────────────────────────────────────── -->
   <div id="view-reviews" class="view">
+    <div class="sort-toolbar">
+      <span class="sort-label">Sort</span>
+      <div class="sort-pills">
+        <button class="sort-pill active" onclick="setSort('total')"      data-sort="total">Overall Score</button>
+        <button class="sort-pill"        onclick="setSort('chars')"      data-sort="chars">Flavor Chars.</button>
+        <button class="sort-pill"        onclick="setSort('nose')"       data-sort="nose">Nose</button>
+        <button class="sort-pill"        onclick="setSort('flavor')"     data-sort="flavor">Flavor Intensity</button>
+        <button class="sort-pill"        onclick="setSort('balance')"    data-sort="balance">Balance</button>
+        <button class="sort-pill"        onclick="setSort('length')"     data-sort="length">Length</button>
+        <button class="sort-pill"        onclick="setSort('date')"       data-sort="date">Review Date</button>
+        <button class="sort-pill"        onclick="setSort('vintage')"    data-sort="vintage">Vintage</button>
+        <button class="sort-pill"        onclick="setSort('actual_price')" data-sort="actual_price">Actual Price</button>
+        <button class="sort-pill"        onclick="setSort('would_pay')"  data-sort="would_pay">Would Pay</button>
+      </div>
+    </div>
     <div id="reviews-container"></div>
   </div>
 
@@ -1237,6 +1308,8 @@
   let flavorSelectedOnly = false;
   let editingReviewId = null;
   let authActionInFlight = false;
+  let sortKey = 'total';
+  let sortDir = -1; // -1 = descending, 1 = ascending
 
   const WineColorOptions = [
     { value: 'Pale Straw', color: '#efe8c6' },
@@ -1947,6 +2020,49 @@
     renderWineColorSelector();
   });
 
+  // ── Sort ─────────────────────────────────────────────────────────
+  function setSort(key) {
+    if (sortKey === key) {
+      sortDir *= -1;
+    } else {
+      sortKey = key;
+      // Numeric/date fields default descending (highest first);
+      // String fields (vintage) default ascending.
+      sortDir = key === 'vintage' ? 1 : -1;
+    }
+
+    document.querySelectorAll('.sort-pill').forEach(btn => {
+      const isActive = btn.dataset.sort === sortKey;
+      btn.classList.toggle('active', isActive);
+      const arrow = btn.querySelector('.sort-arrow');
+      if (arrow) btn.removeChild(arrow);
+      if (isActive) {
+        const arrowEl = document.createElement('span');
+        arrowEl.className = 'sort-arrow';
+        arrowEl.textContent = sortDir === -1 ? '↓' : '↑';
+        btn.appendChild(arrowEl);
+      }
+    });
+
+    renderReviews();
+  }
+
+  function getSortValue(r, key) {
+    switch (key) {
+      case 'total':       return r.total || 0;
+      case 'chars':       return r.scores?.chars   || 0;
+      case 'nose':        return r.scores?.nose     || 0;
+      case 'flavor':      return r.scores?.flavor   || 0;
+      case 'balance':     return r.scores?.balance  || 0;
+      case 'length':      return r.scores?.length   || 0;
+      case 'date':        return r.date ? r.date.replace(/-/g, '') : '';
+      case 'vintage':     return r.vintage ? String(r.vintage).padStart(4, '0') : '';
+      case 'actual_price': return parseFloat(r.actual_price) || 0;
+      case 'would_pay':   return parseFloat(r.would_pay)     || 0;
+      default:            return 0;
+    }
+  }
+
   // ── Render reviews ───────────────────────────────────────────────
   function renderReviews() {
     const container = document.getElementById('reviews-container');
@@ -1961,9 +2077,18 @@
       return;
     }
 
-    container.innerHTML = reviews.map(r => {
-      const title    = esc(r.wine_name || r.producer || 'Unnamed Wine');
-      const metaParts = [r.producer && esc(r.producer), r.vintage, r.date && formatDate(r.date)].filter(Boolean);
+    const sorted = [...reviews].sort((a, b) => {
+      const av = getSortValue(a, sortKey);
+      const bv = getSortValue(b, sortKey);
+      if (av < bv) return sortDir;
+      if (av > bv) return -sortDir;
+      return 0;
+    });
+
+    container.innerHTML = sorted.map(r => {
+      const titleParts = [r.producer, r.wine_name, r.vintage].filter(Boolean).map(esc);
+      const title = titleParts.length ? titleParts.join(' ') : 'Unnamed Wine';
+      const metaParts = [r.date && formatDate(r.date)].filter(Boolean);
 
       const detailItems = [
         r.appellation  && { label: 'Appellation',  value: esc(r.appellation) },
