@@ -447,21 +447,21 @@
     .wine-color-grid {
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 12px;
+      gap: 10px;
     }
 
     .wine-color-option {
       border: 1px solid var(--border);
       background: rgba(255,255,255,0.88);
       border-radius: 14px;
-      padding: 10px 10px 10px;
+      padding: 8px 8px 9px;
       display: grid;
       justify-items: center;
-      gap: 8px;
+      gap: 4px;
       cursor: pointer;
       transition: transform 0.08s, border-color 0.15s, box-shadow 0.15s, background 0.15s;
       touch-action: manipulation;
-      min-height: 184px;
+      min-height: 166px;
     }
 
     .wine-color-option:hover {
@@ -480,8 +480,8 @@
     }
 
     .wine-color-photo {
-      width: 86px;
-      height: 104px;
+      width: 82px;
+      height: 96px;
       border-radius: 12px;
       border: 1px solid rgba(0,0,0,0.07);
       background: #f1f1ee;
@@ -503,19 +503,19 @@
     }
 
     .wine-color-option-label {
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 700;
       color: var(--text);
       text-align: center;
-      line-height: 1.25;
+      line-height: 1.2;
     }
 
     .wine-color-option-grapes {
-      font-size: 11px;
+      font-size: 10px;
       color: var(--text-muted);
       text-align: center;
-      line-height: 1.35;
-      min-height: 30px;
+      line-height: 1.15;
+      min-height: 22px;
       display: -webkit-box;
       line-clamp: 2;
       -webkit-line-clamp: 2;
@@ -694,7 +694,7 @@
     }
 
     .flavor-options {
-      padding: 0 12px 12px;
+      padding: 10px 12px 6px;
       display: flex;
       flex-wrap: wrap;
       gap: 8px;
@@ -853,6 +853,7 @@
       pointer-events: none;
     }
     .price-wrap input { padding-left: 30px; }
+    #view-form .price-wrap input { padding-left: 34px; }
 
     /* ── Score steppers ─────────────────────────────────────── */
     .score-row {
