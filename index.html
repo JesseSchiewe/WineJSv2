@@ -497,7 +497,7 @@
       background-repeat: no-repeat;
       background-size: 600% 600%;
       background-position: calc(var(--chart-col, 0) * 20%) calc(var(--chart-row, 0) * 20%);
-      transform: translate(var(--crop-shift-x, 0px), -3px) scale(1.42);
+      transform: translate(var(--crop-shift-x, 0px), var(--crop-shift-y, -3px)) scale(1.42);
       transform-origin: center 10%;
       filter: saturate(1.05) contrast(1.03);
     }
@@ -1761,34 +1761,8 @@
     { value: 'Deep Tawny', color: '#6b2d16', grapes: 'Aged fortified reds', chartRow: 5, chartCol: 5 },
   ];
 
-  const wineColorCropXOverrides = {
-    // // Right-edge deep column was still shifted too far right.
-    // 'Deep Yellow': -10,
-    // 'Deep Pink': -7,
-    // 'Deep Purple': -7,
-    // 'Deep Tawny': -7,
-
-    // // Fine tune pale and amber entries.
-    // 'Pale Straw': 3,
-    // 'Pale Gold': 3,
-    // 'Pale Amber': 4,
-    // 'Medium Amber': 2,
-  };
-
-  function getWineColorCropShiftX(option) {
-    if (Object.prototype.hasOwnProperty.call(wineColorCropXOverrides, option.value)) {
-      return wineColorCropXOverrides[option.value];
-    }
-
-    // Default baseline by chart column.
-    if (option.chartCol === 0) return 7;
-    if (option.chartCol === 1) return 4;
-    if (option.chartCol === 2) return -1;
-    if (option.chartCol === 3) return -5;
-    if (option.chartCol === 4) return -6;
-    if (option.chartCol === 5) return -10;
-    return 0;
-  }
+  const wineColorCropShiftByColumn = [7, 4, -1, -5, -10, -13];
+  const wineColorCropShiftByRow = [5, 3, 1, -1, -2, -3];
 
   const wineColorMap = Object.fromEntries(WineColorOptions.map(option => [option.value, option.color]));
 
@@ -2016,7 +1990,7 @@
         aria-pressed="${selectedWineColor === option.value ? 'true' : 'false'}"
       >
         <span class="wine-color-photo">
-          <span class="wine-color-photo-crop" style="--chart-col:${option.chartCol};--chart-row:${option.chartRow};--crop-shift-x:${getWineColorCropShiftX(option)}px;" aria-hidden="true"></span>
+          <span class="wine-color-photo-crop" style="--chart-col:${option.chartCol};--chart-row:${option.chartRow};--crop-shift-x:${wineColorCropShiftByColumn[option.chartCol] ?? 0}px;--crop-shift-y:${wineColorCropShiftByRow[option.chartRow] ?? -3}px;" aria-hidden="true"></span>
         </span>
         <span class="wine-color-option-label">${esc(option.value)}</span>
         <span class="wine-color-option-grapes">${esc(option.grapes || '')}</span>
