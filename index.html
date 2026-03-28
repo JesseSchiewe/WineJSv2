@@ -454,14 +454,14 @@
       border: 1px solid var(--border);
       background: rgba(255,255,255,0.88);
       border-radius: 14px;
-      padding: 12px 10px 10px;
+      padding: 10px 10px 10px;
       display: grid;
       justify-items: center;
-      gap: 10px;
+      gap: 8px;
       cursor: pointer;
       transition: transform 0.08s, border-color 0.15s, box-shadow 0.15s, background 0.15s;
       touch-action: manipulation;
-      min-height: 146px;
+      min-height: 184px;
     }
 
     .wine-color-option:hover {
@@ -479,67 +479,38 @@
       box-shadow: 0 12px 28px rgba(80,29,38,0.10);
     }
 
-    .wine-color-glass {
+    .wine-color-photo {
+      width: 86px;
+      height: 104px;
+      border-radius: 12px;
+      border: 1px solid rgba(0,0,0,0.07);
+      background: #f1f1ee;
       position: relative;
-      width: 58px;
-      height: 88px;
-      border: 2px solid rgba(60,60,60,0.35);
-      border-top-width: 1.5px;
-      border-radius: 18px 18px 24px 24px / 14px 14px 30px 30px;
-      background: linear-gradient(180deg, rgba(255,255,255,0.9), rgba(255,255,255,0.28));
       overflow: hidden;
-      box-shadow: inset 8px 0 10px rgba(255,255,255,0.5), inset -8px 0 10px rgba(255,255,255,0.28);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.7);
     }
 
-    .wine-color-glass::before {
+    .wine-color-photo-crop {
+      position: absolute;
+      inset: 0;
+      background-image: url('assets/WineColorChart.jpg');
+      background-repeat: no-repeat;
+      background-size: 600% 600%;
+      background-position: calc(var(--chart-col, 0) * 20%) calc(var(--chart-row, 0) * 20%);
+      transform: scale(1.26);
+      transform-origin: center 25%;
+      filter: saturate(1.05) contrast(1.03);
+    }
+
+    .wine-color-photo::after {
       content: '';
       position: absolute;
-      left: 50%;
-      bottom: -18px;
-      width: 5px;
-      height: 24px;
-      transform: translateX(-50%);
-      background: linear-gradient(180deg, rgba(90,90,90,0.35), rgba(60,60,60,0.7));
-      border-radius: 999px;
-    }
-
-    .wine-color-glass::after {
-      content: '';
-      position: absolute;
-      left: 50%;
-      bottom: -24px;
-      width: 34px;
-      height: 6px;
-      transform: translateX(-50%);
-      background: rgba(40,40,40,0.85);
-      border-radius: 999px;
-      filter: blur(0.2px);
-    }
-
-    .wine-color-liquid {
-      position: absolute;
-      left: 6px;
-      right: 6px;
-      bottom: 8px;
-      height: 48%;
-      border-radius: 0 0 18px 18px;
-      background:
-        radial-gradient(circle at 50% 12%, rgba(255,255,255,0.36), transparent 28%),
-        linear-gradient(180deg, rgba(255,255,255,0.18), rgba(0,0,0,0.08)),
-        var(--wine-color, #d9d0a6);
-      box-shadow: inset 0 8px 12px rgba(255,255,255,0.14), inset 0 -8px 12px rgba(0,0,0,0.12);
-    }
-
-    .wine-color-liquid::before {
-      content: '';
-      position: absolute;
-      top: -4px;
       left: 0;
       right: 0;
-      height: 8px;
-      border-radius: 999px;
-      background: rgba(255,255,255,0.24);
-      mix-blend-mode: screen;
+      bottom: 0;
+      height: 10px;
+      background: linear-gradient(180deg, rgba(241,241,238,0), rgba(241,241,238,0.95) 70%, rgba(241,241,238,1));
+      pointer-events: none;
     }
 
     .wine-color-option-label {
@@ -548,6 +519,20 @@
       color: var(--text);
       text-align: center;
       line-height: 1.25;
+    }
+
+    .wine-color-option-grapes {
+      font-size: 11px;
+      color: var(--text-muted);
+      text-align: center;
+      line-height: 1.35;
+      min-height: 30px;
+      display: -webkit-box;
+      line-clamp: 2;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      max-width: 100%;
     }
 
     .wine-color-review {
@@ -1755,33 +1740,33 @@
   };
 
   const WineColorOptions = [
-    { value: 'Pale Straw', color: '#efe8c6' },
-    { value: 'Medium Straw', color: '#e7df9e' },
-    { value: 'Deep Straw', color: '#d8cb6d' },
-    { value: 'Pale Yellow', color: '#efe39c' },
-    { value: 'Medium Yellow', color: '#e5d04d' },
-    { value: 'Deep Yellow', color: '#d7ba22' },
-    { value: 'Pale Gold', color: '#ead67f' },
-    { value: 'Medium Gold', color: '#ddb84d' },
-    { value: 'Deep Gold', color: '#cd9726' },
-    { value: 'Pale Amber', color: '#e2a53a' },
-    { value: 'Medium Amber', color: '#c7771c' },
-    { value: 'Deep Amber', color: '#a55d15' },
-    { value: 'Pale Pink', color: '#f1d2d8' },
-    { value: 'Medium Pink', color: '#ea8aa4' },
-    { value: 'Deep Pink', color: '#d84c74' },
-    { value: 'Pale Ruby', color: '#c63f58' },
-    { value: 'Medium Ruby', color: '#a71f40' },
-    { value: 'Deep Ruby', color: '#7d1630' },
-    { value: 'Pale Purple', color: '#9b2a72' },
-    { value: 'Medium Purple', color: '#73205f' },
-    { value: 'Deep Purple', color: '#4b143f' },
-    { value: 'Pale Garnet', color: '#b94d30' },
-    { value: 'Medium Garnet', color: '#94331f' },
-    { value: 'Deep Garnet', color: '#652014' },
-    { value: 'Pale Tawny', color: '#b1612d' },
-    { value: 'Medium Tawny', color: '#8e4623' },
-    { value: 'Deep Tawny', color: '#6b2d16' },
+    { value: 'Pale Straw', color: '#efe8c6', grapes: 'Vinho Verde, Muscadet, Verdelho', chartRow: 0, chartCol: 0 },
+    { value: 'Medium Straw', color: '#e7df9e', grapes: 'Young Riesling, Torrontes, Moscato', chartRow: 0, chartCol: 1 },
+    { value: 'Deep Straw', color: '#d8cb6d', grapes: 'Albarino, Verdicchio, Vermentino', chartRow: 0, chartCol: 2 },
+    { value: 'Pale Yellow', color: '#efe39c', grapes: 'Albarino, Gruner Veltliner', chartRow: 0, chartCol: 3 },
+    { value: 'Medium Yellow', color: '#e5d04d', grapes: 'Sauvignon Blanc, Semillon, Vermentino', chartRow: 0, chartCol: 4 },
+    { value: 'Deep Yellow', color: '#d7ba22', grapes: 'Sauternes, Aged Riesling', chartRow: 0, chartCol: 5 },
+    { value: 'Pale Gold', color: '#ead67f', grapes: 'Chenin Blanc, Pinot Gris', chartRow: 1, chartCol: 0 },
+    { value: 'Medium Gold', color: '#ddb84d', grapes: 'Viognier, Verdejo', chartRow: 1, chartCol: 1 },
+    { value: 'Deep Gold', color: '#cd9726', grapes: 'Chardonnay, Aged White Rioja', chartRow: 1, chartCol: 2 },
+    { value: 'Pale Amber', color: '#e2a53a', grapes: 'Sherry, White Port', chartRow: 2, chartCol: 0 },
+    { value: 'Medium Amber', color: '#c7771c', grapes: 'Tokaji, Vin Santo', chartRow: 2, chartCol: 1 },
+    { value: 'Deep Amber', color: '#a55d15', grapes: 'Vinsanto, Aged Tawny Port', chartRow: 2, chartCol: 2 },
+    { value: 'Pale Pink', color: '#f1d2d8', grapes: 'Mourvedre Rose', chartRow: 3, chartCol: 3 },
+    { value: 'Medium Pink', color: '#ea8aa4', grapes: 'Grenache Rose, Pinot Noir Rose', chartRow: 3, chartCol: 4 },
+    { value: 'Deep Pink', color: '#d84c74', grapes: 'Tavel', chartRow: 3, chartCol: 5 },
+    { value: 'Pale Ruby', color: '#c63f58', grapes: 'Pinot Noir', chartRow: 4, chartCol: 0 },
+    { value: 'Medium Ruby', color: '#a71f40', grapes: 'Tempranillo, GSM Blend', chartRow: 4, chartCol: 1 },
+    { value: 'Deep Ruby', color: '#7d1630', grapes: 'Merlot, Cabernet Sauvignon, Tannat', chartRow: 4, chartCol: 2 },
+    { value: 'Pale Purple', color: '#9b2a72', grapes: 'Beaujolais Nouveau, Valpolicella', chartRow: 4, chartCol: 3 },
+    { value: 'Medium Purple', color: '#73205f', grapes: 'Malbec, Syrah, Touriga Nacional', chartRow: 4, chartCol: 4 },
+    { value: 'Deep Purple', color: '#4b143f', grapes: 'Alicante Bouschet, Petite Sirah', chartRow: 4, chartCol: 5 },
+    { value: 'Pale Garnet', color: '#b94d30', grapes: 'Nebbiolo', chartRow: 5, chartCol: 0 },
+    { value: 'Medium Garnet', color: '#94331f', grapes: 'Sangiovese, Aged Reds', chartRow: 5, chartCol: 1 },
+    { value: 'Deep Garnet', color: '#652014', grapes: 'Aged Amarone, Barolo', chartRow: 5, chartCol: 2 },
+    { value: 'Pale Tawny', color: '#b1612d', grapes: 'Tawny Port, Aged Nebbiolo', chartRow: 5, chartCol: 3 },
+    { value: 'Medium Tawny', color: '#8e4623', grapes: 'Aged Sangiovese, Bual Madeira', chartRow: 5, chartCol: 4 },
+    { value: 'Deep Tawny', color: '#6b2d16', grapes: 'Aged fortified reds', chartRow: 5, chartCol: 5 },
   ];
 
   const wineColorMap = Object.fromEntries(WineColorOptions.map(option => [option.value, option.color]));
@@ -1990,10 +1975,13 @@
     const selectedLabel = document.getElementById('wineColorSelectedLabel');
     if (!grid || !status || !selectedLabel) return;
 
+    const selectedOption = WineColorOptions.find(option => option.value === selectedWineColor);
     const selectedColor = wineColorMap[selectedWineColor] || 'transparent';
     if (selectedWineColor) {
       status.innerHTML = `<span class="wine-color-status-dot" style="--wine-color:${selectedColor}"></span>${esc(selectedWineColor)}`;
-      selectedLabel.textContent = `Selected color: ${selectedWineColor}`;
+      selectedLabel.textContent = selectedOption?.grapes
+        ? `Selected color: ${selectedWineColor} (${selectedOption.grapes})`
+        : `Selected color: ${selectedWineColor}`;
     } else {
       status.textContent = 'None selected';
       selectedLabel.textContent = 'No wine color selected';
@@ -2006,10 +1994,11 @@
         data-wine-color="${esc(option.value)}"
         aria-pressed="${selectedWineColor === option.value ? 'true' : 'false'}"
       >
-        <span class="wine-color-glass">
-          <span class="wine-color-liquid" style="--wine-color:${option.color}"></span>
+        <span class="wine-color-photo">
+          <span class="wine-color-photo-crop" style="--chart-col:${option.chartCol};--chart-row:${option.chartRow};" aria-hidden="true"></span>
         </span>
         <span class="wine-color-option-label">${esc(option.value)}</span>
+        <span class="wine-color-option-grapes">${esc(option.grapes || '')}</span>
       </button>
     `).join('');
   }
